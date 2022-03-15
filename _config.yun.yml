@@ -1,0 +1,333 @@
+# - - 头像
+avatar:
+  enable: true
+  url: https://gitee.com/god23bin/blog-pic-bed/raw/master/img/20210404142413.jpg
+  rounded: true
+  opacity: 1
+  mickey_mouse: true
+  status:
+    enable: true
+    emoji: 😆
+    message: 今天不学习，明天变垃圾
+
+# 主题配置
+# - 主题色 分析工具 https://www.yunyoujun.cn/color-dust
+colors:
+  primary: "#6200ee"
+  # 背景色（选取与你的背景图片主色调更贴近的颜色来使其更协调）
+  # bg: "#F5F5F5"
+  selection_bg: "#8e71c1" # 选取文字时的背景色
+  # 标签云中标签的起始色和结束色
+  # tag_start_color:
+  # tag_end_color:
+
+# - - 为标签指定彩色，默认#333
+tags:
+  Vue: "#4fc08d"
+  Hexo: "#0E834D"
+  CSS: "#5298d1"
+  Node.js: "#026E00"
+  Git: "#F14E32"
+  React: "#61dafb"
+  Python: "#3776ab"
+  PHP: "#8892BF"
+  VS Code: "#0066B8"
+  JavaScript: "#F4DF4F"
+  TypeScript: "#317AC6"
+  Laravel: "#F4645F"
+  
+  
+# - - 为分类指定彩色，默认#333
+categories:
+  记录: dimgray
+
+# （确保你的 favicon.ico 文件已放置于 source 文件夹下）
+favicon: /favicon.ico
+
+
+# - 社交图标
+social:
+#  - name: RSS
+#    # set rss in your root config
+#    # https://github.com/hexojs/hexo-generator-feed
+#    link: /atom.xml # config.feed.path
+#    icon: icon-rss-line
+#    color: orange
+#  - name: QQ
+#    # https://isux.tencent.com/wp-content/uploads/2016/05/20160512101222609.pdf
+#    link: https://wpa.qq.com/msgrd?v=3&uin=910426929&site=qq&menu=yes
+#    icon: icon-qq-line
+#    color: "#12B7F5"
+  - name: GitHub
+    link: https://github.com/god23bin
+    icon: icon-github-line
+    color: "#181717"
+  - name: E-Mail
+    link: god23bin@qq.com
+    icon: icon-mail-line
+    color: "#8E71C1"
+  - name: 网易云音乐
+    link: https://music.163.com/#/user/home?id=77844313
+    icon: icon-netease-cloud-music-line
+    color: "#C10D0C"
+#  - name: 知乎
+#    link: https://www.zhihu.com/people/yunyoujun/
+#    icon: icon-zhihu-line
+#    color: "#0084FF"
+  - name: 哔哩哔哩动画
+    link: https://space.bilibili.com/341183781
+    icon: icon-bilibili-line
+    color: "#FF8EB3"
+#  - name: 微信公众号
+#    link: https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/about/white-qrcode-and-search.jpg
+#    icon: icon-wechat-2-line
+#    color: "#1AAD19"
+
+
+# - 首页
+# - - 标语动画
+banner:
+  enable: true
+  title: 
+    - 方圆
+    - 可方
+    - 可圆
+  border: true
+  cloud:
+    enable: true
+    color: "white"
+  go_down:
+    enable: true
+    icon: icon-arrow-down-s-line
+
+# - - 公告
+notice:
+  enable: true
+  content: 可爱的你来啦！
+  
+# 可选 light | dark | auto | time
+mode: auto
+
+# - - 字体
+font:
+  cdn:
+    enable: true
+    lib:
+      - https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&display=swap
+  serif:
+    family: "'Songti SC', 'Noto Serif SC', STZhongsong, STKaiti, KaiTi, Roboto, serif"
+    weight: 900
+  sans_serif:
+    family: "'PingFang SC', 'Microsoft YaHei', Roboto, Arial, sans-serif"
+    weight: 400
+  monospace:
+    family: "'Source Code Pro', 'Courier New', Courier, Consolas, Monaco, monospace"
+
+
+# - - 图片背景
+bg_image:
+  enable: true
+  url: /images/bg3.jpg
+  dark: /images/bg1.jpg
+  # blur: 30px # 设置背景模糊程度
+  opacity: 0.8
+
+# - - 点击页面的烟花效果
+fireworks:
+  enable: true
+  colors:
+    - "102, 167, 221"
+    - "62, 131, 225"
+    - "33, 78, 194"
+    
+# - - 光标
+cursor:
+  enable: true
+  default: https://cdn.jsdelivr.net/gh/YunYouJun/cdn/css/md-cursors/pointer.cur
+  pointer: https://cdn.jsdelivr.net/gh/YunYouJun/cdn/css/md-cursors/link.cur
+  text: https://cdn.jsdelivr.net/gh/YunYouJun/cdn/css/md-cursors/text.cur
+
+# 侧边栏
+# - - 背景与标签
+#     - tagcloud: 在侧边栏显示 Hexo 原生标签页
+#       - amount: 显示的标签数量
+sidebar:
+  #bg_image: https://gitee.com/god23bin/blog-pic-bed/raw/master/1562893544881.jpg
+  bg_image: /images/sidebar_bg.jpg
+  bg_position: center
+  tagcloud:
+    enable: true
+    amount: 20
+
+# - - 导航
+# 设置导航对应图标及链接
+# 
+# 分别为：
+# 
+# 主页
+# 列表
+#   归档
+#   标签
+#   分类
+# 自定义（你可以设置为任意图标及链接，当你未设置自定义图标链接时，它将自动变为文档导航按钮以保持整体的对称）
+menu:
+  home:
+    path: /
+    icon: icon-home-4-line
+  list:
+    - type: archives
+      path: /archives/
+      icon: icon-archive-line
+    - type: categories
+      path: /categories/
+      icon: icon-folder-2-line
+    - type: tags
+      path: /tags/
+      icon: icon-price-tag-3-line
+    # - path: https://www.yunyoujun.cn
+    #   icon: icon-cloud-line
+    #   count: 你猜
+  custom:
+    title: 文档
+    path: https://yun.yunyoujun.cn
+    icon: icon-settings-line
+
+
+# - - 页面链接
+# 在 sidebar 的最下方，添加醒目的图标链接。
+# 相比社交链接，图标更大。你可以放置你的页面导航，友情链接等。
+
+pages:
+  - name: 我喜欢的大佬们
+    url: /links/
+    icon: icon-genderless-line
+    color: dodgerblue
+  - name: 我的女神天使们
+    url: /girls/
+    icon: icon-women-line
+    color: dodgerblue
+
+girls:
+  enable: true
+
+# - 文章
+# - - 内容卡片
+post_card:
+  opacity: 0.8
+  
+# - - 文章信息
+post_meta:
+  item_text: false
+  created_at: true
+  updated_at: true
+  categories: true
+  tags: true
+
+# - - 文章目录
+toc:
+  # 显示编号
+  list_number: false
+  max_depth: 6
+  min_depth: 1
+  placeholder: 很遗憾，咱没写啥目录
+  collapse: false
+
+# - - 文章编辑连接
+post_edit:
+  enable: false
+  url: https://github.com/god23bin/god23bin.github.io/tree/hexo/source/
+
+# - - 代码高亮
+# 还需在 Hexo （须升级至 5.0 以上版本）工作目录下的 _config.yml 中配置
+codeblock:
+  copy_btn: true
+  prismjs:
+    light: default
+    dark: tomorrow
+
+# - - 版权
+# 你的 url 请在 Hexo 工作目录下的 _config.yml 中设置
+creative_commons:
+  license: by-nc-sa
+  post: true
+  language: deed.zh
+  clipboard: true
+
+# - 打赏
+# - - 打赏二维码
+# 打赏
+reward:
+  enable: true
+  icon: icon-hand-coin-line
+  comment: 靓仔or靓女，可以请我喝杯咖啡吗？.
+  # url: https://github.com/YunYouJun/yunyoujun.github.io/issues/96
+  methods:
+    - name: 支付宝
+      path: https://gitee.com/god23bin/blog-pic-bed/raw/master/img/20210405133621.png
+      color: "#00A3EE"
+      icon: icon-alipay-line
+#    - name: QQ 支付
+#      path: https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/donate/qqpay-qrcode.png
+#      color: "#12B7F5"
+#      icon: icon-qq-line
+    - name: 微信支付
+      path: https://gitee.com/god23bin/blog-pic-bed/raw/master/img/20210405133651.png
+      color: "#2DC100"
+      icon: icon-wechat-pay-line
+
+
+# - 页脚
+footer:
+  since: 2021
+  icon:
+    name: icon-cloud-line
+    animated: true
+    color: "#0078E7"
+  powered:
+    enable: true
+  live_time:
+    enable: true
+    prefix: 本博客已萌萌哒地运行
+    suffix: (●'◡'●)
+    start_time: "2021-04-01T00:00:00"
+
+
+say:
+  enable: true
+  api: https://cdn.jsdelivr.net/gh/ElpsyCN/say@gh-pages/sentences.json
+  src: /js/say.js
+  # https://developer.hitokoto.cn/sentence/
+  hitokoto:
+    enable: true
+    api: https://v1.hitokoto.cn
+
+
+mourn:
+  enable: true
+  days:
+    - "4-4"
+
+# 字数统计
+# npm install hexo-wordcount
+wordcount:
+  enable: true
+  count: true
+  time: true
+
+# 标签云
+wordcloud:
+  enable: true
+  height: 350
+
+
+# 数学公式 KaTeX
+katex:
+  copy_tex: true
+  global: true
+
+
+
+
+
+
+
