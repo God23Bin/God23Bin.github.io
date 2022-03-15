@@ -1,9 +1,10 @@
 ---
 title: about
 date: 2021-04-02 16:21:03
+aplayer: true
 ---
 
-
+{% meting "140834718" "netease" "playlist" "theme:#C20C0C" %}
 
 > ## 我呢
 >
