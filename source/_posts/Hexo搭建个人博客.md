@@ -41,13 +41,13 @@ $ npm install -g hexo-cli
 
 点击右上角的 `+` -> `New repository`
 
-![](D:%5CBin%5CDesktop%5CKnowledge%5CJava%5CHexo%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2.assets%5Cimage-20220313221943878.png)
+![](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316224131.png)
 
 仓库名称格式 `你的用户名.github.io`，用户名是英文，大小写无所谓，但建议统一小写。（当然如果你的用户名有大小写，想修改成全小写，那么可以看我另一篇文章，毕竟我之前踩过这个坑）
 
 
 
-![](D:%5CBin%5CDesktop%5CKnowledge%5CJava%5CHexo%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2.assets%5Cimage-20220313222206617.png)
+![](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316224136.png)
 
 然后点击 `Create repository` 完成仓库的创建。
 
