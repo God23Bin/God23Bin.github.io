@@ -326,8 +326,29 @@ katex:
   global: true
 
 
+# 全局播放器
+aplayer:
+  global: true
+  meting: true
+  # https://github.com/metowolf/MetingJS/tree/v1.2#option
+  widget:
+    enable: true
+    autoplay: true
+    # theme: "#2980b9"
+    loop: all
+    order: list
+    volume: 0.7
+    mutex: true
+    lrcType: 0
+    listFolded: false
+    listMaxHeight: 340px
+    meting:
+      enable: true
+      id: 140834718
+      server: netease
+      type: playlist
 
-
-
+pjax:
+  enable: true
 
 

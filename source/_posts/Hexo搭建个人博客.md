@@ -1,15 +1,12 @@
 ---
-title: test
+title: Hexo搭建个人博客
 categories: 折腾
 tags: 
 - Hexo
 - 教程
-aplayer: true
 abbrlink: d87f8e00
 date: 2021-04-02 17:01:57
 ---
-
-
 
 ## 前言
 
