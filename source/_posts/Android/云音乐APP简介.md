@@ -19,11 +19,11 @@ date: 2021-05-30 22:34:24
 
 [项目地址](https://hub.fastgit.org/god23bin/RoadOfLearning_Android/tree/master/MusicDemo)
 
-![](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20210608105801623.png)
+![](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144552.png)
 
-![](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20210608105854798.png)
+![](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144559.png)
 
-![](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20210608105949753.png)
+![](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144606.png)
 
 ## 实现的功能
 

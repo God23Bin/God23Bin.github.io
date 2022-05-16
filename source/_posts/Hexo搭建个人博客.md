@@ -41,13 +41,13 @@ $ npm install -g hexo-cli
 
 点击右上角的 `+` -> `New repository`
 
-![](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316224131.png)
+![](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144202.png)
 
 仓库名称格式 `你的用户名.github.io`，用户名是英文，大小写无所谓，但建议统一小写。（当然如果你的用户名有大小写，想修改成全小写，那么可以看我另一篇文章，毕竟我之前踩过这个坑）
 
 
 
-![](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316224136.png)
+![](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144242.png)
 
 然后点击 `Create repository` 完成仓库的创建。
 

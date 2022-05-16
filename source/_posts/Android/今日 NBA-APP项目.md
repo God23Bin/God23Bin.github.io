@@ -17,15 +17,15 @@ date: 2020-12-10 21:30:20
 
 ## 整体项目效果
 
-![首页](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316111644.png)
+![首页](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144404.png)
 
-![赛程](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316111648.png)
+![赛程](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144410.png)
 
-![社区](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316111652.png)
+![社区](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144414.png)
 
-![我的-NBA中心](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316111656.png)
+![我的-NBA中心](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144419.png)
 
-![我的-登录](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316111659.png)
+![我的-登录](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144425.png)
 
 ## 项目分析
 
@@ -295,7 +295,7 @@ AndroidManifest.xml
 
 目前效果
 
-![目前效果-布局效果](D:\Bin\Desktop\Knowledge\Android\今日 NBA-APP项目.assets\image-20201206174230943.png)
+![目前效果-布局效果](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144435.png)
 
 #### 写4个Fragment的相关布局
 
@@ -429,7 +429,7 @@ tab_home_content_infolist_lv.xml
 </RelativeLayout>
 ```
 
-![新闻ListView的item布局](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316111709.png)
+![新闻ListView的item布局](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144443.png)
 
 这样，新闻列表的item布局也OK了
 
@@ -550,7 +550,7 @@ tab_community_content_item_lv.xml
 </LinearLayout>
 ```
 
-![视频列表的item布局](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316111716.png)
+![视频列表的item布局](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144449.png)
 
 这样视频列表的item布局也就OK了
 
@@ -658,7 +658,7 @@ zone_view_gridlist_item.xml
 </RelativeLayout>
 ```
 
-![网格布局的item布局](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316111722.png)
+![网格布局的item布局](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144456.png)
 
 这样，也OK了
 
@@ -3260,7 +3260,7 @@ public class BilibiliVideoBean {
 
 因为我们需要的视频数据是来自result里面的list的
 
-![视频Json](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316111748.png)
+![视频Json](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144529.png)
 
 但是生成的代码，List的泛型是？，所以我们需要自己新建一个类，来作为泛型，即视频数据类
 

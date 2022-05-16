@@ -2080,7 +2080,7 @@ npm run dev
 
 然后看下目录结构
 
-![目录结构](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316112447.png)
+![目录结构](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516145012.png)
 
 1. build 目录下放置的是项目的webpack配置文件，可以不动
 
@@ -2094,7 +2094,7 @@ npm run dev
 
    src 中的main.js文件是整个项目的入口文件
 
-   ![main.js](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316112452.png)
+   ![main.js](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516145020.png)
 
 我们主要编写的代码就是在src下面的代码。
 

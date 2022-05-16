@@ -569,8 +569,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 手机
 
-![手机](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316111505.png)
+![手机](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144847.png)
 
 平板
 
-![平板](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316111511.png)
+![平板](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144852.png)

@@ -27,7 +27,7 @@ ES是一种标准，可以说规定了一些东西，比如语法啊之类的。
 
 总体框架——ES6中最特别的三个特性
 
-![总体框架](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316112413.png)
+![总体框架](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144910.png)
 
 工欲善其事必先利其器
 
@@ -530,7 +530,7 @@ npm install --save-dev @babel/cli @babel/core @babel/preset-env
 
 完成后整体目录结构是这样的。
 
-![整体目录结构](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316112202.png)
+![整体目录结构](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144924.png)
 
 **文件转化命令**
 
@@ -556,7 +556,7 @@ npm install --save-dev @babel/cli @babel/core @babel/preset-env
 
 转化后如下：
 
-![左边ES6](https://gitee.com/god23bin/blog-pic-bed/raw/master/20220316112214.png)
+![左边ES6](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144930.png)
 
 ### 模块化
 

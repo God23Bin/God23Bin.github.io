@@ -1,7 +1,7 @@
 # - - 头像
 avatar:
   enable: true
-  url: https://gitee.com/god23bin/blog-pic-bed/raw/master/img/20210404142413.jpg
+  url: https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516145418.jpeg
   rounded: true
   opacity: 1
   mickey_mouse: true

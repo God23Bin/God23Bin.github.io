@@ -18,9 +18,9 @@ date: 2020-09-21 13:35:10
 
 ### 架构
 
-![架构](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20200914181052066.png)
+![架构](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144629.png)
 
-![](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20200914180527587.png)
+![](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144634.png)
 
 - 应用层（Applications）
 
@@ -63,13 +63,13 @@ date: 2020-09-21 13:35:10
 
 **总体结构**
 
-![总体结构](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20200914185355540.png)
+![总体结构](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144640.png)
 
 
 
 **展开app目录**
 
-![展开目录结构](https://gitee.com/god23bin/blog-pic-bed/raw/master/%E5%B1%95%E5%BC%80%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84.png)
+![展开目录结构](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144644.png)
 
 java文件，编写java 代码的地方，或者说编写kotlin代码的地方
 
@@ -249,21 +249,21 @@ public class LogUtil {
 
 - 创建Activity
 
-![直接newActivity](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20200924111319489.png)
+![直接newActivity](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144651.png)
 
-![创建中](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20200924111608357.png)
+![创建中](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144656.png)
 
 索性我创建了三个
 
-![](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20200924111750557.png)
+![](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144700.png)
 
 - 布局
 
 布局编辑器
 
-![看看布局编辑器](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20200924111939003.png)
+![看看布局编辑器](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144704.png)
 
-![布局编辑器略解](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20200924112356555.png)
+![布局编辑器略解](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144708.png)
 
 ### 使用Toast提醒
 
@@ -289,7 +289,7 @@ public class LogUtil {
 
 创建菜单文件
 
-![创建菜单](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20200924113011295.png)
+![创建菜单](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144712.png)
 
 FirstActivity，重写onCreateOptionsMenu()方法 和 onOptionsItemSelected()方法
 
@@ -1184,7 +1184,7 @@ LinearLayout，线性布局，控件会线性排列
 </RelativeLayout>
 ```
 
-![相对于父布局定位效果](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20201104134720582.png)
+![相对于父布局定位效果](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144729.png)
 
 然后可以相对于其他控件进行定位
 
@@ -1483,7 +1483,7 @@ public class MainActivity extends AppCompatActivity {
 }
 ```
 
-![ListView的完善](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20201108102811441.png)
+![ListView的完善](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144736.png)
 
 #### 优化
 
@@ -1699,7 +1699,7 @@ public class MainActivity extends AppCompatActivity {
 }
 ```
 
-![点击ListView的效果](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20201108110248283.png)
+![点击ListView的效果](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144742.png)
 
 ### 自定义控件
 
@@ -1844,7 +1844,7 @@ public class TitleLayout extends LinearLayout {
 
 最终效果如下
 
-![标题栏效果](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20201111111435405.png)
+![标题栏效果](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144750.png)
 
 ### RecyclerView
 
@@ -1858,7 +1858,7 @@ public class TitleLayout extends LinearLayout {
 >
 > 这里版本号可能不同，前面基本都一样，如果不一样，Android Studio会提醒你
 
-![Android Studio会提醒最新1.1.0](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20201108111214320.png)
+![Android Studio会提醒最新1.1.0](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144755.png)
 
 ```gradle
 ...
@@ -1874,7 +1874,7 @@ dependencies {
 }
 ```
 
-![进行同步](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20201108111411148.png)
+![进行同步](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144759.png)
 
 #### 引入标签
 
@@ -1932,7 +1932,7 @@ fruit_item.xml
 
 这里注意别写成match_parent，这样的话，运行出的效果会出现一个子项占一个屏幕的情况，需要改成**wrap_content**
 
-![item.xml的宽高](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20201108152009525.png)
+![item.xml的宽高](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144804.png)
 
 完整代码如下
 
@@ -2103,7 +2103,7 @@ public class MainActivity extends AppCompatActivity {
 }
 ```
 
-![RecyclerView的效果](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20201108152325671.png)
+![RecyclerView的效果](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144810.png)
 
 ### RecyclerView的点击事件
 
@@ -2479,7 +2479,7 @@ public class RightFragment extends Fragment {
 </LinearLayout>
 ```
 
-![简单用法-Fragment](https://gitee.com/god23bin/blog-pic-bed/raw/master/image-20201125095627082.png)
+![简单用法-Fragment](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144819.png)
 
 总结：
 

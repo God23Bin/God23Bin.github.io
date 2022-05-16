@@ -47,7 +47,7 @@ int main()
 
 我这里画了张图，方便理解。
 
-![出现1 2 1 2 1 1 2 8 9 10](https://gitee.com/god23bin/blog-pic-bed/raw/master/%E5%87%BA%E7%8E%B012121128910.png)
+![出现1 2 1 2 1 1 2 8 9 10](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144336.png)
 
 因为拷贝的地方重叠了，使原来的数据（3 4 5）被覆盖了，导致最后出来的结果不是我们想要的。
 
@@ -57,13 +57,13 @@ int main()
 
 还是上一张图
 
-![从后往前拷贝解决1 2 1 2 1 1 2 8 9 10](https://gitee.com/god23bin/blog-pic-bed/raw/master/%E4%BB%8E%E5%90%8E%E5%BE%80%E5%89%8D%E6%8B%B7%E8%B4%9D%E8%A7%A3%E5%86%B312121128910.png)
+![从后往前拷贝解决1 2 1 2 1 1 2 8 9 10](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144343.png)
 
 这样，就得出了我们想要的结果。
 
 但是呢，也不能一概而论，就全部都是从后往前拷贝，还是得分情况的，具体就是看`destination`和`source`的位置关系。
 
-![destination和source位置关系](https://gitee.com/god23bin/blog-pic-bed/raw/master/destination%E5%92%8Csource%E4%BD%8D%E7%BD%AE%E5%85%B3%E7%B3%BB.png)
+![destination和source位置关系](https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144349.png)
 
 回到最开始的问题，**为什么会需要memmove函数？**，因为memmove这个函数可以处理这种重叠拷贝。
 
