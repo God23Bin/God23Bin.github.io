@@ -1,0 +1,659 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#6200ee"><meta name="author" content="god23bin"><meta name="copyright" content="god23bin"><meta name="generator" content="Hexo 6.1.0"><meta name="theme" content="hexo-theme-yun"><title>噢！查重原来是这样实现的啊！ | 方圆-起名字真是个难题</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&amp;display=swap" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/star-markdown-css@0.2.4/dist/yun/yun-markdown.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-theme-vars/base.css"><script src="//at.alicdn.com/t/font_1140697_dxory92pb0h.js" async></script><script src="https://cdn.jsdelivr.net/npm/@unocss/runtime/mini.global.js"></script><script src="https://cdn.jsdelivr.net/npm/scrollreveal/dist/scrollreveal.min.js" defer></script><script>function initScrollReveal() {
+  [".post-card",".markdown-body img"].forEach((target)=> {
+    ScrollReveal().reveal(target);
+  })
+}
+document.addEventListener("DOMContentLoaded", initScrollReveal);
+document.addEventListener("pjax:success", initScrollReveal);
+</script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.css"><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js"></script><script>document.addEventListener("DOMContentLoaded", () => {
+  Yun.utils.renderKatex();
+});</script><link class="aplayer-style-marker" rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/aplayer@latest/dist/APlayer.min.css"><script class="aplayer-script-marker" src="https://cdn.jsdelivr.net/npm/aplayer@latest/dist/APlayer.min.js" defer></script><script class="meting-script-marker" src="https://cdn.jsdelivr.net/npm/meting@1/dist/Meting.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/pjax@latest/pjax.min.js" defer></script><script src="/js/pjax.js" defer type="module"></script><script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script><link rel="icon" type="image/png" href="/favicon.ico"><link rel="mask-icon" href="/favicon.ico" color="#6200ee"><link rel="preload" href="/css/hexo-theme-yun.css" as="style"><link rel="prefetch" href="/js/sidebar.js" as="script"><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><script id="yun-config">
+    window.Yun = {}
+    window.CONFIG = {"hostname":"god23bin.github.io","root":"/","title":["方圆","可方","可圆"],"version":"1.8.11","mode":"auto","copycode":true,"page":{"isPost":true},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}.","hits":"${hits} results found","hits_time":"${hits} results found in ${time} ms"},"anonymous_image":"https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/avatar/none.jpg","say":{"api":"https://v1.hitokoto.cn","hitokoto":true},"fireworks":{"colors":["102, 167, 221","62, 131, 225","33, 78, 194"]},"vendors":{"darken":"https://cdn.jsdelivr.net/npm/darken@1.5.0"}};
+  </script><link rel="stylesheet" href="/css/hexo-theme-yun.css"><script src="/js/hexo-theme-yun.js" type="module"></script><meta name="description" content="前言项目中有一个查重的需求，就类似论文查重这种的需求，我的组长已经写好了这个 Demo 了，我也挺感兴趣的，所以也看了看是如何实现的，看完后，感慨一声，噢！原来是这样实现的啊！现在呢，就记录下我从中学到的知识！ 需求输入：需要查重的内容，通常是非常长的文本，对于论文来说，可能上万字。 输出：显示重复的句子，将重复句子标红，以及整体内容的重复率。 标红是次要矛盾，查重是主要矛盾，需要先解决。 发挥想">
+<meta property="og:type" content="article">
+<meta property="og:title" content="噢！查重原来是这样实现的啊！">
+<meta property="og:url" content="https://god23bin.github.io/posts/check-duplication-in-java/index.html">
+<meta property="og:site_name" content="方圆-起名字真是个难题">
+<meta property="og:description" content="前言项目中有一个查重的需求，就类似论文查重这种的需求，我的组长已经写好了这个 Demo 了，我也挺感兴趣的，所以也看了看是如何实现的，看完后，感慨一声，噢！原来是这样实现的啊！现在呢，就记录下我从中学到的知识！ 需求输入：需要查重的内容，通常是非常长的文本，对于论文来说，可能上万字。 输出：显示重复的句子，将重复句子标红，以及整体内容的重复率。 标红是次要矛盾，查重是主要矛盾，需要先解决。 发挥想">
+<meta property="og:locale">
+<meta property="og:image" content="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20221021221421.png">
+<meta property="article:published_time" content="2022-10-21T23:35:00.000Z">
+<meta property="article:modified_time" content="2022-11-20T13:00:01.530Z">
+<meta property="article:author" content="god23bin">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="NLP">
+<meta property="article:tag" content="算法">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20221021221421.png"><script>(function() {
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+  const setting = localStorage.getItem('darken-mode') || 'auto'
+  if (setting === 'dark' || (prefersDark && setting !== 'light'))
+    document.documentElement.classList.toggle('dark', true)
+})()</script></head><body><script defer src="https://cdn.jsdelivr.net/npm/animejs@latest"></script><script defer src="/js/ui/fireworks.js" type="module"></script><canvas class="fireworks"></canvas><div class="container"><a class="sidebar-toggle hty-icon-button" id="menu-btn"><div class="hamburger hamburger--spin" type="button"><span class="hamburger-box"><span class="hamburger-inner"></span></span></div></a><div class="sidebar-toggle sidebar-overlay"></div><aside class="sidebar"><script src="/js/sidebar.js" type="module"></script><ul class="sidebar-nav"><li class="sidebar-nav-item sidebar-nav-toc hty-icon-button sidebar-nav-active" data-target="post-toc-wrap" title="Table of Contents"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-list-ordered"></use></svg></li><li class="sidebar-nav-item sidebar-nav-overview hty-icon-button" data-target="site-overview-wrap" title="Overview"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-passport-line"></use></svg></li></ul><div class="sidebar-panel" id="site-overview-wrap"><div class="site-info mickey-mouse"><a class="site-author-avatar" href="/about/" title="god23bin"><img width="96" loading="lazy" src="https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516145418.jpeg" alt="god23bin"><span class="site-author-status" title="今天不学习，明天变垃圾">😆</span></a><div class="site-author-name"><a href="/about/">god23bin</a></div><a class="site-name" href="/about/site.html">方圆-起名字真是个难题</a><sub class="site-subtitle"></sub><div class="site-desciption"></div></div><nav class="site-state"><a class="site-state-item hty-icon-button icon-home" href="/" title="Home"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-home-4-line"></use></svg></span></a><div class="site-state-item"><a href="/archives/" title="Archives"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-archive-line"></use></svg></span><span class="site-state-item-count">30</span></a></div><div class="site-state-item"><a href="/categories/" title="Categories"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-2-line"></use></svg></span><span class="site-state-item-count">9</span></a></div><div class="site-state-item"><a href="/tags/" title="Tags"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="site-state-item-count">34</span></a></div><a class="site-state-item hty-icon-button" target="_blank" rel="noopener" href="https://yun.yunyoujun.cn" title="文档"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-settings-line"></use></svg></span></a></nav><hr style="margin-bottom:0.5rem"><div class="links-of-author"><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://github.com/god23bin" title="GitHub" target="_blank" style="color:#181717"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-github-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="god23bin@qq.com" title="E-Mail" target="_blank" style="color:#8E71C1"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-mail-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://music.163.com/#/user/home?id=77844313" title="网易云音乐" target="_blank" style="color:#C10D0C"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-netease-cloud-music-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://space.bilibili.com/341183781" title="哔哩哔哩动画" target="_blank" style="color:#FF8EB3"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-bilibili-line"></use></svg></a></div><hr style="margin:0.5rem 1rem"><div class="links"><a class="links-item hty-icon-button" href="/links/" title="我喜欢的大佬们" style="color:dodgerblue"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-genderless-line"></use></svg></a><a class="links-item hty-icon-button" href="/girls/" title="我的女神天使们" style="color:dodgerblue"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-women-line"></use></svg></a></div><br><a class="links-item hty-icon-button" id="toggle-mode-btn" href="javascript:;" title="Mode" style="color: #f1cb64"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-contrast-2-line"></use></svg></a></div><div class="sidebar-panel sidebar-panel-active" id="post-toc-wrap"><div class="post-toc"><div class="post-toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9C%80%E6%B1%82"><span class="toc-text">需求</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%91%E6%8C%A5%E6%83%B3%E8%B1%A1"><span class="toc-text">发挥想象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0%EF%BC%9F"><span class="toc-text">如何通过代码实现？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%87%E6%9C%AC%E7%9B%B8%E4%BC%BC%E5%BA%A6%E7%AE%97%E6%B3%95"><span class="toc-text">文本相似度算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%96%AD%E5%8F%A5"><span class="toc-text">断句</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E8%AF%8D"><span class="toc-text">分词</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0"><span class="toc-text">实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-text">准备工作</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Maven%E4%BE%9D%E8%B5%96"><span class="toc-text">Maven依赖</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Sentence-%E7%B1%BB"><span class="toc-text">Sentence 类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AD%96%E7%95%A5%E6%A8%A1%E5%BC%8F"><span class="toc-text">策略模式</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%AD%E5%8F%A5-1"><span class="toc-text">断句</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E8%AF%8D-1"><span class="toc-text">分词</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%99%E5%BC%A6%E7%9B%B8%E4%BC%BC%E6%80%A7%E7%AE%97%E6%B3%95"><span class="toc-text">余弦相似性算法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%80%BB%E8%BE%91"><span class="toc-text">逻辑</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BB%9F%E8%AE%A1%E8%AF%8D%E9%A2%91"><span class="toc-text">统计词频</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%91%E9%87%8F%E5%8C%96"><span class="toc-text">向量化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E4%BD%99%E5%BC%A6%E7%9B%B8%E4%BC%BC%E5%BA%A6"><span class="toc-text">计算余弦相似度</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81"><span class="toc-text">代码</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%9E%E9%A1%BE%E6%80%9D%E8%80%83"><span class="toc-text">回顾思考</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E6%9E%90%E6%96%87%E6%9C%AC%E5%B7%A5%E5%85%B7%E7%B1%BB"><span class="toc-text">分析文本工具类</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%A1%E7%AE%97%E7%9B%B8%E4%BC%BC%E7%9A%84%E5%8F%A5%E5%AD%90%E6%95%B0%E9%87%8F"><span class="toc-text">计算相似的句子数量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81"><span class="toc-text">完整代码</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95"><span class="toc-text">测试</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-text">总结</span></a></li></ol></div></div></div><div class="tag-cloud"><div class="tag-cloud-tags"><a href="/tags/Ajax/" style="font-size: 12px; color: #999">Ajax</a> <a href="/tags/Android/" style="font-size: 16.5px; color: #7391ad">Android</a> <a href="/tags/C%E8%AF%AD%E8%A8%80/" style="font-size: 25.5px; color: #2680d4">C语言</a> <a href="/tags/ES/" style="font-size: 12px; color: #999">ES</a> <a href="/tags/Element-UI/" style="font-size: 12px; color: #999">Element UI</a> <a href="/tags/HashMap/" style="font-size: 12px; color: #999">HashMap</a> <a href="/tags/Hexo/" style="font-size: 12px; color: #999">Hexo</a> <a href="/tags/Java/" style="font-size: 25.5px; color: #2680d4">Java</a> <a href="/tags/Js/" style="font-size: 12px; color: #999">Js</a> <a href="/tags/Json/" style="font-size: 12px; color: #999">Json</a> <a href="/tags/MySQL/" style="font-size: 12px; color: #999">MySQL</a> <a href="/tags/NLP/" style="font-size: 12px; color: #999">NLP</a> <a href="/tags/Node-js/" style="font-size: 12px; color: #999">Node.js</a> <a href="/tags/Spring/" style="font-size: 12px; color: #999">Spring</a> <a href="/tags/Vue-js/" style="font-size: 12px; color: #999">Vue.js</a> <a href="/tags/jQuery/" style="font-size: 12px; color: #999">jQuery</a> <a href="/tags/%E5%85%A5%E9%97%A8/" style="font-size: 25.5px; color: #2680d4">入门</a> <a href="/tags/%E5%87%BD%E6%95%B0%E5%AE%9E%E7%8E%B0/" style="font-size: 25.5px; color: #2680d4">函数实现</a> <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 30px; color: #0078e7">前端</a> <a href="/tags/%E5%90%8E%E7%AB%AF/" style="font-size: 21px; color: #4d89c0">后端</a></div></div></aside><main class="sidebar-translate" id="content"><div id="post"><article class="hty-card post-block" itemscope itemtype="https://schema.org/Article" style="--smc-primary:#6200ee;"><link itemprop="mainEntityOfPage" href="https://god23bin.github.io/posts/check-duplication-in-java/"><span hidden itemprop="author" itemscope itemtype="https://schema.org/Person"><meta itemprop="name" content="god23bin"><meta itemprop="description"></span><span hidden itemprop="publisher" itemscope itemtype="https://schema.org/Organization"><meta itemprop="name" content="方圆-起名字真是个难题"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">噢！查重原来是这样实现的啊！</h1><div class="post-meta"><div class="post-time" style="display:block"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-line"></use></svg></span> <time title="Created: 2022-10-21 23:35:00" itemprop="dateCreated datePublished" datetime="2022-10-21T23:35:00+00:00">2022-10-21</time><span class="post-meta-divider">-</span><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-2-line"></use></svg></span> <time title="Modified: 2022-11-20 13:00:01" itemprop="dateModified" datetime="2022-11-20T13:00:01+00:00">2022-11-20</time></div><span class="post-count"><span class="post-symbolcount"><span class="post-meta-item-icon" title="Word count in article"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-file-word-line"></use></svg></span> <span title="Word count in article">4.9k</span><span class="post-meta-divider">-</span><span class="post-meta-item-icon" title="Reading time"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-timer-line"></use></svg></span> <span title="Reading time">20m</span></span></span><span class="post-busuanzi"><span class="post-meta-divider">-</span><span class="post-meta-item-icon" title="Views"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-eye-line"></use></svg> <span id="busuanzi_value_page_pv"></span></span></span><div class="post-classify"><span class="post-category"> <span class="post-meta-item-icon" style="margin-right:3px;"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-line"></use></svg></span><span itemprop="about" itemscope itemtype="https://schema.org/Thing"><a class="category-item" href="/categories/NLP/" style="--text-color:var(--hty-text-color)" itemprop="url" rel="index"><span itemprop="text">NLP</span></a></span></span><span class="post-tag"><span class="post-meta-divider">-</span><a class="tag-item" href="/tags/Java/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">Java</span></a><a class="tag-item" href="/tags/NLP/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">NLP</span></a><a class="tag-item" href="/tags/%E7%AE%97%E6%B3%95/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">算法</span></a></span></div></div></header><section class="post-body" itemprop="articleBody"><div class="post-content markdown-body"><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>项目中有一个查重的需求，就类似论文查重这种的需求，我的组长已经写好了这个 Demo 了，我也挺感兴趣的，所以也看了看是如何实现的，看完后，感慨一声，噢！原来是这样实现的啊！现在呢，就记录下我从中学到的知识！</p>
+<h2 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h2><p>输入：需要查重的内容，通常是非常长的文本，对于论文来说，可能上万字。</p>
+<p>输出：显示重复的句子，将重复句子标红，以及整体内容的重复率。</p>
+<p>标红是次要矛盾，<strong>查重是主要矛盾</strong>，需要先解决。</p>
+<h2 id="发挥想象"><a href="#发挥想象" class="headerlink" title="发挥想象"></a>发挥想象</h2><p>我们想象一下，纯人工查重的办法。工作人员拿到一篇论文，阅读这篇论文（假设该工作人员的大脑是超强大脑，工作人员对论文库中的论文非常熟悉，基本能倒背如流的程度），每阅读一句就与大脑中的论文进行对比，如果发现重复的内容太多了（即重复的句子很多），那么计算下重复的内容大概占全文的多少，进而得出整篇论文的重复率。</p>
+<p>很明显，人工查重，效率肯定是不高的。</p>
+<h2 id="如何通过代码实现？"><a href="#如何通过代码实现？" class="headerlink" title="如何通过代码实现？"></a>如何通过代码实现？</h2><p><strong>已有资源：</strong></p>
+<ul>
+<li>一篇待查重的论文，<strong>假设</strong>论文内容两万字。</li>
+<li>论文数据库中大量的论文数据，<strong>假设</strong>数据库中的每篇论文的内容也两万字左右。</li>
+</ul>
+<p><strong>思路：</strong>将输入的论文内容与论文数据库中存在的论文内容进行一一对比。</p>
+<p><strong>思考：</strong></p>
+<ul>
+<li>如何对比？是一句一句进行对比，还是一段一段的进行对比？</li>
+<li>对比的时候，如何才能说明对比的内容是重复的？也就是说判断重复的标准是什么？</li>
+</ul>
+<p><strong>接触新领域：</strong></p>
+<blockquote>
+<p>自然语言处理（NLP），自然语言处理任务中，我们经常需要判断两篇文档是否相似、计算两篇文档的相似程度。</p>
+</blockquote>
+<h2 id="文本相似度算法"><a href="#文本相似度算法" class="headerlink" title="文本相似度算法"></a>文本相似度算法</h2><p>对于<strong>如何说明对比的内容是重复的</strong>，那么这里就涉及到<strong>文本相似度算法</strong>了。通过查找资料，我了解到文本相似度算法有挺多的。</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844903992812634119">掘金-如何计算两个字符串之间的文本相似度?</a></p>
+<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844903842748825614">掘金-文本相似度计算之余弦定理</a></p>
+</blockquote>
+<p>下面我列举了几种：</p>
+<ul>
+<li>Jaccard 相似度算法</li>
+<li>Sorensen Dice 相似度系数</li>
+<li>Levenshtein</li>
+<li>汉明距离（海明距离）（Hamming Distance）</li>
+<li>余弦相似性</li>
+</ul>
+<p>对于这些文本相似度的算法，主要就是对文本进行<strong>分词</strong>，然后再对分好的词进行相关的计算，得出两个文本的相似度。</p>
+<p>所以，对于两个文本，计算相似度的思路是：<strong>分词-&gt;通过某种算法计算得到相似度</strong></p>
+<h2 id="断句"><a href="#断句" class="headerlink" title="断句"></a>断句</h2><p>当然，这些算法，都是两个文本进行的，这两个文本可以是句子，也可以是段落，还可以是超长文本。假设我们直接是超长文本，直接使用相似度算法去匹配相似度，那么可能会误判，毕竟超长文本，分词出来的词语，相同的数量肯定是很多的，所以重复性也就会越高。</p>
+<p>所以，首先要解决的问题就是，对于超长的文本，我们该<strong>如何进行中文断句？</strong></p>
+<p>经过了解，得知 <code>BreakIterator</code> 这个类可以完成这件事。</p>
+<blockquote>
+<p>BreakIterator：<a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/7/docs/api/java/text/BreakIterator.html">https://docs.oracle.com/javase/7/docs/api/java/text/BreakIterator.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/liugang594/article/details/84539743">CSDN-Java国际化：BreakIterator</a></p>
+</blockquote>
+<h2 id="分词"><a href="#分词" class="headerlink" title="分词"></a>分词</h2><p>分词，将一个句子中的词语进行划分，分出有意义的词语。这里主要使用 IK 分词器。</p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><h3 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h3><h4 id="Maven依赖"><a href="#Maven依赖" class="headerlink" title="Maven依赖"></a>Maven依赖</h4><pre class="language-xml" data-language="xml"><code class="language-xml"><span class="token comment">&lt;!-- IK分词器 --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>com.janeluo<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>ikanalyzer<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>2012_u6<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- 汉语言处理包 Han Natural Language Processing --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>com.hankcs<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>hanlp<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>portable-1.5.4<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- 阿帕奇 集合工具 --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.commons<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>commons-collections4<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>4.4<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+<span class="token comment">&lt;!-- 糊涂工具包 --></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>cn.hutool<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>hutool-all<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>5.7.10<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.projectlombok<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>lombok<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>1.18.16<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>dependency</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>groupId</span><span class="token punctuation">></span></span>org.apache.commons<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>groupId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>artifactId</span><span class="token punctuation">></span></span>commons-lang3<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>artifactId</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">></span></span>3.8.1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>dependency</span><span class="token punctuation">></span></span></code></pre>
+
+<h4 id="Sentence-类"><a href="#Sentence-类" class="headerlink" title="Sentence 类"></a>Sentence 类</h4><p>把句子抽象出来，写成一个 Sentence 类去代表句子。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@Data</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Sentence</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">/**
+     * 文本
+     */</span>
+    <span class="token keyword">private</span> <span class="token class-name">String</span> text<span class="token punctuation">;</span>
+    
+    <span class="token comment">/**
+     * 相似度
+     */</span>
+    <span class="token keyword">private</span> <span class="token class-name">Double</span> similar<span class="token punctuation">;</span>
+    
+    <span class="token comment">/**
+     * 是否重复，0否，1是，默认0，重复标准就是，当相似度大于60%时，就认为该句子是重复的
+     */</span>
+    <span class="token keyword">private</span> <span class="token class-name">Integer</span> duplicatesState <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+    <span class="token comment">/**
+     * 与该句子最相似的句子
+     */</span>
+    <span class="token keyword">private</span> <span class="token class-name">Sentence</span> maxSimilarSentence<span class="token punctuation">;</span>
+
+    <span class="token comment">/**
+     * 重复句子下标，可能存在多个重复句子，所以使用集合记录
+     */</span>
+    <span class="token keyword">private</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Integer</span><span class="token punctuation">></span></span> duplicatesIndex <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<h4 id="策略模式"><a href="#策略模式" class="headerlink" title="策略模式"></a>策略模式</h4><p>由于这里有多种算法，考虑可以使用<strong>策略模式</strong>，来选择不同的算法实现。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">interface</span> <span class="token class-name">SimDegreeAlgorithm</span> <span class="token punctuation">&#123;</span>
+
+    <span class="token comment">/**
+     * 计算两个句子的相似度
+     * @param a
+     * @param b
+     * @return double
+     **/</span>
+    <span class="token keyword">double</span> <span class="token function">getSimDegree</span><span class="token punctuation">(</span><span class="token class-name">String</span> a<span class="token punctuation">,</span> <span class="token class-name">String</span> b<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token comment">/**
+ * @author god23bin
+ * @description Jaccard 相似度算法，集合的交集与集合的并集的比例.
+ */</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">Jaccard</span> <span class="token keyword">implements</span> <span class="token class-name">SimDegreeAlgorithm</span> <span class="token punctuation">&#123;</span>
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token keyword">double</span> <span class="token function">getSimDegree</span><span class="token punctuation">(</span><span class="token class-name">String</span> a<span class="token punctuation">,</span> <span class="token class-name">String</span> b<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token comment">/**
+ * @author god23bin
+ * @description 余弦相似性算法
+ * 怎么用它来计算两个字符串之间的相似度呢？
+ * 首先我们将字符串向量化（向量就是并集中的每个字符在各自中出现的频率），之后就可以在一个平面空间中，求出他们向量之间夹角的余弦值即可。
+ */</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">CosSim</span> <span class="token keyword">implements</span> <span class="token class-name">SimDegreeAlgorithm</span> <span class="token punctuation">&#123;</span>
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token keyword">double</span> <span class="token function">getSimDegree</span><span class="token punctuation">(</span><span class="token class-name">String</span> a<span class="token punctuation">,</span> <span class="token class-name">String</span> b<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token comment">/**
+ * @author god23bin
+ * @description 相似度算法的策略
+ */</span>
+<span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">SimDegreeStrategy</span> <span class="token punctuation">&#123;</span>
+
+    <span class="token keyword">private</span> <span class="token class-name">SimDegreeAlgorithm</span> simDegreeAlgorithm<span class="token punctuation">;</span>
+
+    <span class="token keyword">public</span> <span class="token class-name">SimDegreeStrategy</span><span class="token punctuation">(</span><span class="token class-name">SimDegreeAlgorithm</span> simDegreeAlgorithm<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>simDegreeAlgorithm <span class="token operator">=</span> simDegreeAlgorithm<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">double</span> <span class="token function">getSimDegree</span><span class="token punctuation">(</span><span class="token class-name">String</span> a<span class="token punctuation">,</span> <span class="token class-name">String</span> b<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> simDegreeAlgorithm<span class="token punctuation">.</span><span class="token function">getSimDegree</span><span class="token punctuation">(</span>a<span class="token punctuation">,</span> b<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<p>本简单实现中，将选择使用<strong>余弦相似性算法</strong>来作为文本相似度算法的实现。</p>
+<h3 id="断句-1"><a href="#断句-1" class="headerlink" title="断句"></a>断句</h3><p>写一个工具类来实现断句。简单说明一下，如何通过 <code>BreakIterator</code> 这个类实现断句。</p>
+<ol>
+<li>调用 <code>getSentenceInstance()</code> 就可以获取能判断句子边界的实例对象。</li>
+<li>通过实例对象调用 <code>setText()</code> 方法设置需要判断的句子字符串。</li>
+<li>通过实例对象调用 <code>first()</code> 和 <code>next()</code> 方法判断边界点。</li>
+<li>根据边界点进行分割字符串。</li>
+</ol>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">SentenceUtil</span> <span class="token punctuation">&#123;</span>
+
+    <span class="token comment">/**
+     * 将长文本进行断句
+     * @param content 长文本
+     * @return
+     */</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Sentence</span><span class="token punctuation">></span></span> <span class="token function">breakSentence</span><span class="token punctuation">(</span><span class="token class-name">String</span> content<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 获取实例对象</span>
+        <span class="token class-name">BreakIterator</span> iterator <span class="token operator">=</span> <span class="token class-name">BreakIterator</span><span class="token punctuation">.</span><span class="token function">getSentenceInstance</span><span class="token punctuation">(</span><span class="token class-name">Locale</span><span class="token punctuation">.</span>CHINA<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// 设置文本，待断句的长文本</span>
+        iterator<span class="token punctuation">.</span><span class="token function">setText</span><span class="token punctuation">(</span>content<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// 存储断好的句子</span>
+        <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Sentence</span><span class="token punctuation">></span></span> list <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// 断句的边界</span>
+        <span class="token keyword">int</span> firstIndex<span class="token punctuation">;</span>
+        <span class="token keyword">int</span> lastIndex <span class="token operator">=</span> iterator<span class="token punctuation">.</span><span class="token function">first</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// lastIndex 不等于 -1 （BreakIterator.DONE的值为 -1），说明还没断完，还没结束</span>
+        <span class="token keyword">while</span> <span class="token punctuation">(</span>lastIndex <span class="token operator">!=</span> <span class="token class-name">BreakIterator</span><span class="token punctuation">.</span>DONE<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            firstIndex <span class="token operator">=</span> lastIndex<span class="token punctuation">;</span>
+            lastIndex <span class="token operator">=</span> iterator<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>lastIndex <span class="token operator">!=</span> <span class="token class-name">BreakIterator</span><span class="token punctuation">.</span>DONE<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token class-name">Sentence</span> sentence <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Sentence</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                sentence<span class="token punctuation">.</span><span class="token function">setText</span><span class="token punctuation">(</span>content<span class="token punctuation">.</span><span class="token function">substring</span><span class="token punctuation">(</span>firstIndex<span class="token punctuation">,</span> lastIndex<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                list<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>sentence<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span> list<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<h3 id="分词-1"><a href="#分词-1" class="headerlink" title="分词"></a>分词</h3><p>写一个工具类来实现分词，使用 IK 分词器对文本进行分词。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">IKUtil</span> <span class="token punctuation">&#123;</span>
+
+    <span class="token comment">/**
+     * 以List的形式返回经过IK分词器处理的文本分词的结果
+     * @param text 需要分词的文本
+     * @return
+     */</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> <span class="token function">divideText</span><span class="token punctuation">(</span><span class="token class-name">String</span> text<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token keyword">null</span> <span class="token operator">==</span> text <span class="token operator">||</span> <span class="token string">""</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>text<span class="token punctuation">.</span><span class="token function">trim</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token comment">// 分词结果集</span>
+        <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> resultList <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// 文本串 Reader</span>
+        <span class="token class-name">StringReader</span> re <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">StringReader</span><span class="token punctuation">(</span>text<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// 智能分词： 合并数词和量词，对分词结果进行歧义判断</span>
+        <span class="token class-name">IKSegmenter</span> ik <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">IKSegmenter</span><span class="token punctuation">(</span>re<span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// Lexeme 词元对象</span>
+        <span class="token class-name">Lexeme</span> lex <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+        <span class="token keyword">try</span> <span class="token punctuation">&#123;</span>
+            <span class="token comment">// 分词，获取下一个词元</span>
+            <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>lex <span class="token operator">=</span> ik<span class="token punctuation">.</span><span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token comment">// 获取词元的文本内容，存入结果集中</span>
+                resultList<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>lex<span class="token punctuation">.</span><span class="token function">getLexemeText</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span><span class="token class-name">IOException</span> e<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"分词IO异常："</span> <span class="token operator">+</span> e<span class="token punctuation">.</span><span class="token function">getMessage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span> resultList<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<h3 id="余弦相似性算法"><a href="#余弦相似性算法" class="headerlink" title="余弦相似性算法"></a>余弦相似性算法</h3><h4 id="逻辑"><a href="#逻辑" class="headerlink" title="逻辑"></a>逻辑</h4><p>整个算法的逻辑是这样的，那么我们一一实现。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token annotation punctuation">@Override</span>
+<span class="token keyword">public</span> <span class="token keyword">double</span> <span class="token function">getSimDegree</span><span class="token punctuation">(</span><span class="token class-name">String</span> a<span class="token punctuation">,</span> <span class="token class-name">String</span> b<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">StringUtils</span><span class="token punctuation">.</span><span class="token function">isBlank</span><span class="token punctuation">(</span>a<span class="token punctuation">)</span> <span class="token operator">||</span> <span class="token class-name">StringUtils</span><span class="token punctuation">.</span><span class="token function">isBlank</span><span class="token punctuation">(</span>b<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 将句子进行分词</span>
+
+    <span class="token comment">// 计算句子中词的词频</span>
+
+    <span class="token comment">// 向量化</span>
+
+    <span class="token comment">// a、b 一维向量</span>
+
+    <span class="token comment">// 分别计算三个参数，再结合公式计算</span>
+
+<span class="token punctuation">&#125;</span></code></pre>
+
+<h4 id="统计词频"><a href="#统计词频" class="headerlink" title="统计词频"></a>统计词频</h4><p>分词上面已经实现，那现在是需要对句子中分好的词进行词频的统计，分词工具返回的是一个 <code>List&lt;String&gt;</code> 集合，我们可以通过哈希表对集合中的词语的出现次数进行统计，就是我们要的词频了。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span></span> <span class="token function">getWordsFrequency</span><span class="token punctuation">(</span><span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> words<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span></span> wordFrequency <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token number">16</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 统计词的出现次数，即词频</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">String</span> word <span class="token operator">:</span> words<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        wordFrequency<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>word<span class="token punctuation">,</span> wordFrequency<span class="token punctuation">.</span><span class="token function">getOrDefault</span><span class="token punctuation">(</span>word<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> wordFrequency<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<h4 id="向量化"><a href="#向量化" class="headerlink" title="向量化"></a>向量化</h4><p>向量化，我们看看 <a target="_blank" rel="noopener" href="https://juejin.cn/user/4142615542900615">@呼延十</a> 大佬是如何说的：</p>
+<blockquote>
+<p>字符串向量化怎么做呢？我举一个简单的例子：</p>
+<pre class="language-ini" data-language="ini"><code class="language-ini">A: 呼延十二
+B: 呼延二十三
+
+他们的并集 [呼，延，二，十，三]
+
+向量就是并集中的每个字符在各自中出现的频率。
+A 的向量：[1,1,1,1,0]
+B 的向量：[1,1,1,1,1]</code></pre>
+
+<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844903992812634119#heading-5">掘金-如何计算两个字符串之间的文本相似度?-余弦相似性</a></p>
+</blockquote>
+<p>所以</p>
+<pre class="language-ini" data-language="ini"><code class="language-ini">两个句子是这样的：
+句子1：你笑起来真好看，像春天的花一样！
+句子2：你赞起来真好看，像夏天的阳光！
+
+进行分词，分词结果及频率：
+<span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">你, 笑起来, 真, 好看, 像, 春天, 的, 花, 一样</span><span class="token punctuation">]</span></span>，出现频率都是1
+<span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">你, 赞, 起来, 真, 好看, 像, 夏天, 的, 阳光</span><span class="token punctuation">]</span></span>，出现频率都是1
+
+它们的并集：
+<span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">你，笑起来，赞，起来，真，好看，像，春天，夏天，的，花，一样，阳光</span><span class="token punctuation">]</span></span>
+
+它们的向量：
+         <span class="token section"><span class="token punctuation">[</span><span class="token section-name selector">你，笑起来，赞，起来，真，好看，像，春天，夏天，的，花，一样，阳光</span><span class="token punctuation">]</span></span>
+句子1向量：[1,   1,    0,  0,  1,  1,   1,  1,   0,   1, 1,   1,   0 ]
+句子2向量：[1,   0,    1,  1,  1,  1,   1,  0,   1,   1, 1,   0,   1 ]</code></pre>
+
+<p>代码表示：</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token comment">// 向量化，先并集，然后遍历在并集中对应词语，在自己的分词集合中对应词语出现次数，组成的数就是向量</span>
+<span class="token class-name">Set</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> union <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HashSet</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+union<span class="token punctuation">.</span><span class="token function">addAll</span><span class="token punctuation">(</span>aWords<span class="token punctuation">)</span><span class="token punctuation">;</span>
+union<span class="token punctuation">.</span><span class="token function">addAll</span><span class="token punctuation">(</span>bWords<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// a、b 一维向量</span>
+<span class="token keyword">int</span><span class="token punctuation">[</span><span class="token punctuation">]</span> aVector <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">int</span><span class="token punctuation">[</span>union<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token keyword">int</span><span class="token punctuation">[</span><span class="token punctuation">]</span> bVector <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">int</span><span class="token punctuation">[</span>union<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+<span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> collect <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>union<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> collect<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token operator">++</span>i<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    aVector<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">=</span> aWordsFrequency<span class="token punctuation">.</span><span class="token function">getOrDefault</span><span class="token punctuation">(</span>collect<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    bVector<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">=</span> bWordsFrequency<span class="token punctuation">.</span><span class="token function">getOrDefault</span><span class="token punctuation">(</span>collect<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<h4 id="计算余弦相似度"><a href="#计算余弦相似度" class="headerlink" title="计算余弦相似度"></a>计算余弦相似度</h4><p>最后，计算余弦相似度，结合公式计算。</p>
+<p><img src="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20221021221421.png" alt="image-20221021112310429" loading="lazy"></p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token comment">/**
+ * 分别计算三个参数
+ * @param aVec a 一维向量
+ * @param bVec b 一维向量
+ */</span>
+<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">double</span> <span class="token function">similarity</span><span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">[</span><span class="token punctuation">]</span> aVec<span class="token punctuation">,</span> <span class="token keyword">int</span><span class="token punctuation">[</span><span class="token punctuation">]</span> bVec<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">int</span> n <span class="token operator">=</span> aVec<span class="token punctuation">.</span>length<span class="token punctuation">;</span>
+    <span class="token keyword">double</span> p1 <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword">double</span> p2 <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword">double</span> p3 <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> n<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        p1 <span class="token operator">+=</span> <span class="token punctuation">(</span>aVec<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">*</span> bVec<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        p2 <span class="token operator">+=</span> <span class="token punctuation">(</span>aVec<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">*</span> aVec<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        p3 <span class="token operator">+=</span> <span class="token punctuation">(</span>bVec<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">*</span> bVec<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    p2 <span class="token operator">=</span> <span class="token class-name">Math</span><span class="token punctuation">.</span><span class="token function">sqrt</span><span class="token punctuation">(</span>p2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    p3 <span class="token operator">=</span> <span class="token class-name">Math</span><span class="token punctuation">.</span><span class="token function">sqrt</span><span class="token punctuation">(</span>p3<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 结合公式计算</span>
+    <span class="token keyword">return</span> <span class="token punctuation">(</span>p1<span class="token punctuation">)</span> <span class="token operator">/</span> <span class="token punctuation">(</span>p2 <span class="token operator">*</span> p3<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<h4 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h4><p><code>CosSim</code></p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">CosSim</span> <span class="token keyword">implements</span> <span class="token class-name">SimDegreeAlgorithm</span> <span class="token punctuation">&#123;</span>
+
+    <span class="token comment">/**
+     * 计算两个句子的相似度：余弦相似度算法
+     * @param a 句子1
+     * @param b 句子2
+     **/</span>
+    <span class="token annotation punctuation">@Override</span>
+    <span class="token keyword">public</span> <span class="token keyword">double</span> <span class="token function">getSimDegree</span><span class="token punctuation">(</span><span class="token class-name">String</span> a<span class="token punctuation">,</span> <span class="token class-name">String</span> b<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">StringUtils</span><span class="token punctuation">.</span><span class="token function">isBlank</span><span class="token punctuation">(</span>a<span class="token punctuation">)</span> <span class="token operator">||</span> <span class="token class-name">StringUtils</span><span class="token punctuation">.</span><span class="token function">isBlank</span><span class="token punctuation">(</span>b<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token comment">// 将句子进行分词</span>
+        <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> aWords <span class="token operator">=</span> <span class="token class-name">IKUtil</span><span class="token punctuation">.</span><span class="token function">divideText</span><span class="token punctuation">(</span>a<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> bWords <span class="token operator">=</span> <span class="token class-name">IKUtil</span><span class="token punctuation">.</span><span class="token function">divideText</span><span class="token punctuation">(</span>b<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// 计算句子中词的词频</span>
+        <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span></span> aWordsFrequency <span class="token operator">=</span> <span class="token function">getWordsFrequency</span><span class="token punctuation">(</span>aWords<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span></span> bWordsFrequency <span class="token operator">=</span> <span class="token function">getWordsFrequency</span><span class="token punctuation">(</span>bWords<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// 向量化，先并集，然后遍历在并集中对应词语，在自己的分词集合中对应词语出现次数，组成的数就是向量</span>
+        <span class="token class-name">Set</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> union <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HashSet</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        union<span class="token punctuation">.</span><span class="token function">addAll</span><span class="token punctuation">(</span>aWords<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        union<span class="token punctuation">.</span><span class="token function">addAll</span><span class="token punctuation">(</span>bWords<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// a、b 一维向量</span>
+        <span class="token keyword">int</span><span class="token punctuation">[</span><span class="token punctuation">]</span> aVector <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">int</span><span class="token punctuation">[</span>union<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token keyword">int</span><span class="token punctuation">[</span><span class="token punctuation">]</span> bVector <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token keyword">int</span><span class="token punctuation">[</span>union<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> collect <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">ArrayList</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>union<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> collect<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span> <span class="token operator">++</span>i<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            aVector<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">=</span> aWordsFrequency<span class="token punctuation">.</span><span class="token function">getOrDefault</span><span class="token punctuation">(</span>collect<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            bVector<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">=</span> bWordsFrequency<span class="token punctuation">.</span><span class="token function">getOrDefault</span><span class="token punctuation">(</span>collect<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token comment">// 分别计算三个参数，再结合公式计算</span>
+        <span class="token keyword">return</span> <span class="token function">similarity</span><span class="token punctuation">(</span>aVector<span class="token punctuation">,</span> bVector<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span></span> <span class="token function">getWordsFrequency</span><span class="token punctuation">(</span><span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">></span></span> words<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">Integer</span><span class="token punctuation">></span></span> wordFrequency <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span><span class="token number">16</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// 统计词的出现次数，即词频</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">String</span> word <span class="token operator">:</span> words<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            wordFrequency<span class="token punctuation">.</span><span class="token function">put</span><span class="token punctuation">(</span>word<span class="token punctuation">,</span> wordFrequency<span class="token punctuation">.</span><span class="token function">getOrDefault</span><span class="token punctuation">(</span>word<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span> wordFrequency<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">/**
+     * 分别计算三个参数
+     * @param aVec a 一维向量
+     * @param bVec b 一维向量
+     **/</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">double</span> <span class="token function">similarity</span><span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">[</span><span class="token punctuation">]</span> aVec<span class="token punctuation">,</span> <span class="token keyword">int</span><span class="token punctuation">[</span><span class="token punctuation">]</span> bVec<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">int</span> n <span class="token operator">=</span> aVec<span class="token punctuation">.</span>length<span class="token punctuation">;</span>
+        <span class="token keyword">double</span> p1 <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">double</span> p2 <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">double</span> p3 <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> n<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            p1 <span class="token operator">+=</span> <span class="token punctuation">(</span>aVec<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">*</span> bVec<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            p2 <span class="token operator">+=</span> <span class="token punctuation">(</span>aVec<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">*</span> aVec<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            p3 <span class="token operator">+=</span> <span class="token punctuation">(</span>bVec<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">*</span> bVec<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        p2 <span class="token operator">=</span> <span class="token class-name">Math</span><span class="token punctuation">.</span><span class="token function">sqrt</span><span class="token punctuation">(</span>p2<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        p3 <span class="token operator">=</span> <span class="token class-name">Math</span><span class="token punctuation">.</span><span class="token function">sqrt</span><span class="token punctuation">(</span>p3<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token comment">// 结合公式计算</span>
+        <span class="token keyword">return</span> <span class="token punctuation">(</span>p1<span class="token punctuation">)</span> <span class="token operator">/</span> <span class="token punctuation">(</span>p2 <span class="token operator">*</span> p3<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<h3 id="回顾思考"><a href="#回顾思考" class="headerlink" title="回顾思考"></a>回顾思考</h3><blockquote>
+<p><strong>思考：</strong></p>
+<ul>
+<li>如何对比？是一句一句进行对比，还是一段一段的进行对比？</li>
+<li>对比的时候，如何才能说明对比的内容是重复的？也就是说判断重复的标准是什么？</li>
+</ul>
+</blockquote>
+<p>通过文本相似度算法，我们可以得到两个句子的相似度。那么相似度多少，我们才能认为它重复了呢？这个就由我们来决定了，在这里，<strong>当相似度达到60%以上，那么就认为当前句子是重复的</strong>。</p>
+<p>现在，<strong>整体的查重逻辑</strong>应该是比较明了了：</p>
+<p><strong>我们可以拿到长文本，对长文本进行断句，得到句子集合，将这个句子集合与数据库中的数据（也进行断句，得到句子集合）进行相似度计算，记录相似度大于标准的句子，即记录重复句子及重复句子的数量，这样我们就能够判断，这长文本里面到底有多少个句子是重复的，进而得出重复率</strong>。</p>
+<h3 id="分析文本工具类"><a href="#分析文本工具类" class="headerlink" title="分析文本工具类"></a>分析文本工具类</h3><p>我们可以再封装一下，写一个分析文本工具类 <code>AnalysisUtil</code></p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">AnalysisUtil</span> <span class="token punctuation">&#123;</span>
+    
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">BigDecimal</span> <span class="token function">getAnalysisResult</span><span class="token punctuation">(</span><span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Sentence</span><span class="token punctuation">></span></span> sentencesA<span class="token punctuation">,</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Sentence</span><span class="token punctuation">></span></span> sentencesB<span class="token punctuation">,</span> <span class="token class-name">SimDegreeAlgorithm</span> algorithm<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">int</span> simSentenceCnt <span class="token operator">=</span> <span class="token function">getSimSentenceCnt</span><span class="token punctuation">(</span>sentencesA<span class="token punctuation">,</span> sentencesB<span class="token punctuation">,</span> algorithm<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">BigDecimal</span> analysisResult <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">CollectionUtil</span><span class="token punctuation">.</span><span class="token function">isNotEmpty</span><span class="token punctuation">(</span>sentencesA<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            analysisResult <span class="token operator">=</span> <span class="token class-name">BigDecimal</span><span class="token punctuation">.</span><span class="token function">valueOf</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword">double</span><span class="token punctuation">)</span> simSentenceCnt <span class="token operator">/</span> sentencesA<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setScale</span><span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">,</span> <span class="token class-name">BigDecimal</span><span class="token punctuation">.</span>ROUND_HALF_UP<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+            analysisResult <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">BigDecimal</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span> analysisResult<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    
+    <span class="token comment">/**
+     * 返回 A 在 B 中的相似句子数量，同时记录相似句子的相似度及其所在位置（在进行处理的过程中，通过对 A 中数据进行相关操作实现）。
+     * @param sentencesA 原始文本集合，即断好的句子集合
+     * @param sentencesB 模式文本集合，即断好的句子集合
+     * @param algorithm 相似度算法
+     **/</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">getSimSentenceCnt</span><span class="token punctuation">(</span><span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Sentence</span><span class="token punctuation">></span></span> sentencesA<span class="token punctuation">,</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Sentence</span><span class="token punctuation">></span></span> sentencesB<span class="token punctuation">,</span> <span class="token class-name">SimDegreeAlgorithm</span> algorithm<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<h4 id="计算相似的句子数量"><a href="#计算相似的句子数量" class="headerlink" title="计算相似的句子数量"></a>计算相似的句子数量</h4><pre class="language-java" data-language="java"><code class="language-java"><span class="token comment">/**
+ * 返回 A 在 B 中的相似句子数量，同时记录相似句子的相似度及其所在位置（在进行处理的过程中，通过对 A 中数据进行相关操作实现）。
+ * @param sentencesA 原始文本集合，即断好的句子集合
+ * @param sentencesB 模式文本集合，即断好的句子集合
+ * @param algorithm 相似度算法
+ **/</span>
+<span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">getSimSentenceCnt</span><span class="token punctuation">(</span><span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Sentence</span><span class="token punctuation">></span></span> sentencesA<span class="token punctuation">,</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Sentence</span><span class="token punctuation">></span></span> sentencesB<span class="token punctuation">,</span> <span class="token class-name">SimDegreeAlgorithm</span> algorithm<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// 当前句子相似度</span>
+    <span class="token keyword">double</span> simDegree <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token comment">// 相似的句子数量</span>
+    <span class="token keyword">int</span> simSentenceCnt <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token comment">// 计算相似度的策略</span>
+    <span class="token class-name">SimDegreeStrategy</span> simDegreeStrategy <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">SimDegreeStrategy</span><span class="token punctuation">(</span>algorithm<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">Sentence</span> sentence1 <span class="token operator">:</span> sentencesA<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 当前句子匹配到的最大的相似度</span>
+        <span class="token keyword">double</span> maxSimDegree <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token comment">// 记录 B 里的，与 A 中最大相似度的那个句子</span>
+        <span class="token class-name">Sentence</span> temp <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">Sentence</span> sentence2 <span class="token operator">:</span> sentencesB<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token comment">// 计算相似度</span>
+            simDegree <span class="token operator">=</span> simDegreeStrategy<span class="token punctuation">.</span><span class="token function">getSimDegree</span><span class="token punctuation">(</span>sentence1<span class="token punctuation">.</span><span class="token function">getText</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> sentence2<span class="token punctuation">.</span><span class="token function">getText</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token comment">// 打印信息</span>
+            <span class="token function">printSim</span><span class="token punctuation">(</span>sentence1<span class="token punctuation">,</span> sentence2<span class="token punctuation">,</span> simDegree<span class="token punctuation">,</span> algorithm<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token comment">// 相似度大于60，认为文本重复</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>simDegree <span class="token operator">*</span> <span class="token number">100</span> <span class="token operator">></span> <span class="token number">60</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                sentence1<span class="token punctuation">.</span><span class="token function">setDuplicatesState</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token comment">// 记录该句子在 B 中的位置</span>
+                sentence1<span class="token punctuation">.</span><span class="token function">getDuplicatesIndex</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>sentencesB<span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span>sentence2<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+            <span class="token comment">// 记录最大的相似度</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>simDegree <span class="token operator">*</span> <span class="token number">100</span> <span class="token operator">></span> maxSimDegree<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                maxSimDegree <span class="token operator">=</span> simDegree <span class="token operator">*</span> <span class="token number">100</span><span class="token punctuation">;</span>
+                temp <span class="token operator">=</span> sentence2<span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token comment">// 如果当前句子匹配到的最大相似度是大于60%的，那么说明该句子在 B 中至少有一个句子是相似的，即该句子是重复的</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>maxSimDegree <span class="token operator">></span> <span class="token number">60</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token operator">++</span>simSentenceCnt<span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        sentence1<span class="token punctuation">.</span><span class="token function">setSimilar</span><span class="token punctuation">(</span>maxSimDegree<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        sentence1<span class="token punctuation">.</span><span class="token function">setMaxSimilarSentence</span><span class="token punctuation">(</span>temp<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> simSentenceCnt<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<h4 id="完整代码"><a href="#完整代码" class="headerlink" title="完整代码"></a>完整代码</h4><pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">AnalysisUtil</span> <span class="token punctuation">&#123;</span>
+
+    <span class="token comment">/**
+     * 计算出与项目库内容重复的句子在当前内容下所占的比例
+     * @param sentencesA 待查重的句子集合
+     * @param sentencesB 项目库中的项目内容句子集合
+     * @param algorithm 相似度算法
+     * @return java.math.BigDecimal
+     **/</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token class-name">BigDecimal</span> <span class="token function">getAnalysisResult</span><span class="token punctuation">(</span><span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Sentence</span><span class="token punctuation">></span></span> sentencesA<span class="token punctuation">,</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Sentence</span><span class="token punctuation">></span></span> sentencesB<span class="token punctuation">,</span> <span class="token class-name">SimDegreeAlgorithm</span> algorithm<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">int</span> simSentenceCnt <span class="token operator">=</span> <span class="token function">getSimSentenceCnt</span><span class="token punctuation">(</span>sentencesA<span class="token punctuation">,</span> sentencesB<span class="token punctuation">,</span> algorithm<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">BigDecimal</span> analysisResult <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">CollectionUtil</span><span class="token punctuation">.</span><span class="token function">isNotEmpty</span><span class="token punctuation">(</span>sentencesA<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            analysisResult <span class="token operator">=</span> <span class="token class-name">BigDecimal</span><span class="token punctuation">.</span><span class="token function">valueOf</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword">double</span><span class="token punctuation">)</span> simSentenceCnt <span class="token operator">/</span> sentencesA<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">setScale</span><span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">,</span> <span class="token class-name">BigDecimal</span><span class="token punctuation">.</span>ROUND_HALF_UP<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+            analysisResult <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">BigDecimal</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span> analysisResult<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">/**
+     * 根据相似度算法，分析句子集合，返回 A 在 B 中的相似句子数量，同时记录相似句子的相似度及其所在位置（在进行处理的过程中，通过对 A 中数据进行相关操作实现）。
+     * @param sentencesA 原始文本集合，即断好的句子集合
+     * @param sentencesB 模式文本集合，即断好的句子集合
+     * @param algorithm 相似度算法
+     * @return int
+     **/</span>
+    <span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">getSimSentenceCnt</span><span class="token punctuation">(</span><span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Sentence</span><span class="token punctuation">></span></span> sentencesA<span class="token punctuation">,</span> <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Sentence</span><span class="token punctuation">></span></span> sentencesB<span class="token punctuation">,</span> <span class="token class-name">SimDegreeAlgorithm</span> algorithm<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 当前句子相似度</span>
+        <span class="token keyword">double</span> simDegree <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token comment">// 相似的句子数量</span>
+        <span class="token keyword">int</span> simSentenceCnt <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token comment">// 计算相似度的策略</span>
+        <span class="token class-name">SimDegreeStrategy</span> simDegreeStrategy <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">SimDegreeStrategy</span><span class="token punctuation">(</span>algorithm<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">Sentence</span> sentence1 <span class="token operator">:</span> sentencesA<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token comment">// 当前句子匹配到的最大的相似度</span>
+            <span class="token keyword">double</span> maxSimDegree <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+            <span class="token comment">// 记录 B 里的，与 A 中最大相似度的那个句子</span>
+            <span class="token class-name">Sentence</span> temp <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+            <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">Sentence</span> sentence2 <span class="token operator">:</span> sentencesB<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token comment">// 计算相似度</span>
+                simDegree <span class="token operator">=</span> simDegreeStrategy<span class="token punctuation">.</span><span class="token function">getSimDegree</span><span class="token punctuation">(</span>sentence1<span class="token punctuation">.</span><span class="token function">getText</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> sentence2<span class="token punctuation">.</span><span class="token function">getText</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token comment">// 打印信息</span>
+                <span class="token function">printSim</span><span class="token punctuation">(</span>sentence1<span class="token punctuation">,</span> sentence2<span class="token punctuation">,</span> simDegree<span class="token punctuation">,</span> algorithm<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token comment">// 相似度大于60，认为文本重复</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>simDegree <span class="token operator">*</span> <span class="token number">100</span> <span class="token operator">></span> <span class="token number">60</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    sentence1<span class="token punctuation">.</span><span class="token function">setDuplicatesState</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token comment">// 记录该句子在 B 中的位置</span>
+                    sentence1<span class="token punctuation">.</span><span class="token function">getDuplicatesIndex</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>sentencesB<span class="token punctuation">.</span><span class="token function">indexOf</span><span class="token punctuation">(</span>sentence2<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+                <span class="token comment">// 记录最大的相似度</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>simDegree <span class="token operator">*</span> <span class="token number">100</span> <span class="token operator">></span> maxSimDegree<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    maxSimDegree <span class="token operator">=</span> simDegree <span class="token operator">*</span> <span class="token number">100</span><span class="token punctuation">;</span>
+                    temp <span class="token operator">=</span> sentence2<span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+            <span class="token punctuation">&#125;</span>
+            <span class="token comment">// 如果当前句子匹配到的最大相似度是大于60的，那么说明该句子在 B 中至少有一个句子是相似的，即该句子是重复的</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>maxSimDegree <span class="token operator">></span> <span class="token number">60</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token operator">++</span>simSentenceCnt<span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+            <span class="token comment">// 记录句子的相似度以及与哪条相似</span>
+            sentence1<span class="token punctuation">.</span><span class="token function">setSimilar</span><span class="token punctuation">(</span>maxSimDegree<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            sentence1<span class="token punctuation">.</span><span class="token function">setMaxSimilarSentence</span><span class="token punctuation">(</span>temp<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span> simSentenceCnt<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    
+    <span class="token keyword">private</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">printSim</span><span class="token punctuation">(</span><span class="token class-name">Sentence</span> sentence1<span class="token punctuation">,</span> <span class="token class-name">Sentence</span> sentence2<span class="token punctuation">,</span> <span class="token keyword">double</span> simDegree<span class="token punctuation">,</span> <span class="token class-name">SimDegreeAlgorithm</span> algorithm<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">BigDecimal</span> bigDecimal <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">BigDecimal</span><span class="token punctuation">(</span>simDegree<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">DecimalFormat</span> decimalFormat <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">DecimalFormat</span><span class="token punctuation">(</span><span class="token string">"0.00%"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">String</span> format <span class="token operator">=</span> decimalFormat<span class="token punctuation">.</span><span class="token function">format</span><span class="token punctuation">(</span>bigDecimal<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"----------------------------------------------------------------"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span>algorithm<span class="token punctuation">.</span><span class="token function">getClass</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getSimpleName</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"句子1："</span> <span class="token operator">+</span> sentence1<span class="token punctuation">.</span><span class="token function">getText</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"句子2："</span> <span class="token operator">+</span> sentence2<span class="token punctuation">.</span><span class="token function">getText</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"相似度："</span> <span class="token operator">+</span> format<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3><p>测试两个句子。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">testLogic</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token class-name">String</span> content <span class="token operator">=</span> <span class="token string">"你笑起来真好看，像春天的花一样！"</span><span class="token punctuation">;</span>
+    <span class="token class-name">String</span> t <span class="token operator">=</span> <span class="token string">"你赞起来真好看，像夏天的阳光！"</span><span class="token punctuation">;</span>
+    <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Sentence</span><span class="token punctuation">></span></span> sentencesA <span class="token operator">=</span> <span class="token class-name">SentenceUtil</span><span class="token punctuation">.</span><span class="token function">breakSentence</span><span class="token punctuation">(</span>content<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Sentence</span><span class="token punctuation">></span></span> sentencesB <span class="token operator">=</span> <span class="token class-name">SentenceUtil</span><span class="token punctuation">.</span><span class="token function">breakSentence</span><span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">BigDecimal</span> analysisResult <span class="token operator">=</span> <span class="token class-name">AnalysisUtil</span><span class="token punctuation">.</span><span class="token function">getAnalysisResult</span><span class="token punctuation">(</span>sentencesA<span class="token punctuation">,</span> sentencesB<span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">CosSim</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"重复率："</span> <span class="token operator">+</span> analysisResult<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<p>输出结果：</p>
+<pre class="language-ini" data-language="ini"><code class="language-ini">句子1：你笑起来真好看，像春天的花一样！
+句子2：你赞起来真好看，像夏天的阳光！
+相似度：55.56%
+重复率：0.0000</code></pre>
+
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">static</span> <span class="token keyword">void</span> <span class="token function">testLogic</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token class-name">String</span> content <span class="token operator">=</span> <span class="token string">"你笑起来真好看，像春天的花一样！"</span><span class="token punctuation">;</span>
+    <span class="token class-name">String</span> t <span class="token operator">=</span> <span class="token string">"你笑起来真好看，像夏天的花一样！"</span><span class="token punctuation">;</span>
+    <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Sentence</span><span class="token punctuation">></span></span> sentencesA <span class="token operator">=</span> <span class="token class-name">SentenceUtil</span><span class="token punctuation">.</span><span class="token function">breakSentence</span><span class="token punctuation">(</span>content<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">List</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">Sentence</span><span class="token punctuation">></span></span> sentencesB <span class="token operator">=</span> <span class="token class-name">SentenceUtil</span><span class="token punctuation">.</span><span class="token function">breakSentence</span><span class="token punctuation">(</span>t<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">BigDecimal</span> analysisResult <span class="token operator">=</span> <span class="token class-name">AnalysisUtil</span><span class="token punctuation">.</span><span class="token function">getAnalysisResult</span><span class="token punctuation">(</span>sentencesA<span class="token punctuation">,</span> sentencesB<span class="token punctuation">,</span> <span class="token keyword">new</span> <span class="token class-name">CosSim</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">System</span><span class="token punctuation">.</span>out<span class="token punctuation">.</span><span class="token function">println</span><span class="token punctuation">(</span><span class="token string">"相似度："</span> <span class="token operator">+</span> analysisResult<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<p>输出结果：</p>
+<pre class="language-ini" data-language="ini"><code class="language-ini">句子1：你笑起来真好看，像春天的花一样！
+句子2：你笑起来真好看，像夏天的花一样！
+相似度：88.89%
+重复率：1.0000</code></pre>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><strong>思路：</strong>将输入的论文内容与论文数据库中存在的论文内容进行一一对比。</p>
+<p><strong>思考：</strong></p>
+<ul>
+<li>如何对比？是一句一句进行对比，还是一段一段的进行对比？</li>
+<li>对比的时候，如何才能说明对比的内容是重复的？也就是说判断重复的标准是什么？</li>
+</ul>
+<p>查重的基本思路就是，<strong>把待查重的内容进行断句，然后一条一条句子与数据库中的进行对比，计算相似度</strong>。当然，这里的实现是比较简单粗暴的，两层 for 循环，外层遍历待查重的句子，内层遍历对比的句子，时间复杂度为 $O(n^2)$ 。</p>
+<p>进一步的想法，就是使用多线程，这个后续再更新吧。</p>
+<p>目前还没想到还能如何进一步优化。<strong>如果屏幕前的你有什么宝贵的建议或者想法，非常欢迎留下你的评论~~~</strong></p>
+</div></section><div id="reward-container"><span class="hty-icon-button button-glow" id="reward-button" title="Donate" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === &quot;none&quot;) ? &quot;block&quot; : &quot;none&quot;;"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-hand-coin-line"></use></svg></span><div id="reward-comment">靓仔or靓女，可以请我喝杯咖啡吗？.</div><div id="qr" style="display:none;"><div style="display:inline-block"><a target="_blank" rel="noopener" href="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20220523221203.png"><img loading="lazy" src="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20220523221203.png" alt="支付宝" title="支付宝"></a><div><span style="color:#00A3EE"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-alipay-line"></use></svg></span></div></div><div style="display:inline-block"><a target="_blank" rel="noopener" href="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20220523221130.png"><img loading="lazy" src="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20220523221130.png" alt="微信支付" title="微信支付"></a><div><span style="color:#2DC100"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-wechat-pay-line"></use></svg></span></div></div></div></div><ul class="post-copyright"><li class="post-copyright-author"><strong>Post author: </strong>god23bin</li><li class="post-copyright-link"><strong>Post link: </strong><a href="https://god23bin.github.io/posts/check-duplication-in-java/" title="噢！查重原来是这样实现的啊！">https://god23bin.github.io/posts/check-duplication-in-java/</a></li><li class="post-copyright-license"><strong>Copyright Notice: </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener" title="CC BY-NC-SA 4.0 "><svg class="icon"><use xlink:href="#icon-creative-commons-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-by-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-nc-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-sa-line"></use></svg></a> unless otherwise stated.</li></ul><script>document.addEventListener('copy', function (event) {
+  const clipboardData = event.clipboardData || window.clipboardData;
+  if (!clipboardData) { return; }
+  const text = window.getSelection().toString();
+  if (text) {
+    event.preventDefault();
+    clipboardData.setData('text/plain', text + '\n\nPost author: god23bin\nPost link: https://god23bin.github.io/posts/check-duplication-in-java/\nCopyright Notice: All articles in this blog are licensed under CC BY-NC-SA 4.0 unless otherwise stated.');
+  }
+});</script></article><div class="post-nav"><div class="post-nav-item"><a class="post-nav-prev" href="/posts/I-can-finally-write-scheduled-tasks-in-Java/" rel="prev" title="我终于会写 Java 的定时任务了！"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-left-s-line"></use></svg><span class="post-nav-text">我终于会写 Java 的定时任务了！</span></a></div><div class="post-nav-item"><a class="post-nav-next" href="/posts/thrilling-scene-of-working-with-MySQL/" rel="next" title="我操作MySQL的惊险一幕"><span class="post-nav-text">我操作MySQL的惊险一幕</span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-right-s-line"></use></svg></a></div></div></div><div class="hty-card" id="comment"></div></main><footer class="sidebar-translate" id="footer"><div class="copyright"><span>&copy; 2021 – 2022 </span><span class="with-love" id="animate"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-cloud-line"></use></svg></span><span class="author"> god23bin</span></div><div class="powered"><span>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> v6.1.0</span><span class="footer-separator">|</span><span>Theme - <a rel="noopener" href="https://github.com/YunYouJun/hexo-theme-yun" target="_blank"><span>Yun</span></a> v1.8.11</span></div><div class="live-time"><span>本博客已萌萌哒地运行</span><span id="display_live_time"></span><span class="moe-text">(●'◡'●)</span><script>function blog_live_time() {
+  setTimeout(blog_live_time, 1000);
+  const start = new Date('2021-04-01T00:00:00');
+  const now = new Date();
+  const timeDiff = (now.getTime() - start.getTime());
+  const msPerMinute = 60 * 1000;
+  const msPerHour = 60 * msPerMinute;
+  const msPerDay = 24 * msPerHour;
+  const passDay = Math.floor(timeDiff / msPerDay);
+  const passHour = Math.floor((timeDiff % msPerDay) / 60 / 60 / 1000);
+  const passMinute = Math.floor((timeDiff % msPerHour) / 60 / 1000);
+  const passSecond = Math.floor((timeDiff % msPerMinute) / 1000);
+  display_live_time.innerHTML = ` ${passDay} Days ${passHour} Hours ${passMinute} Minutes ${passSecond} Seconds`;
+}
+blog_live_time();
+</script></div><div id="busuanzi"><span id="busuanzi_container_site_uv" title="Total Visitors"><span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-user-line"></use></svg></span><span id="busuanzi_value_site_uv"></span></span><span class="footer-separator">|</span><span id="busuanzi_container_site_pv" title="Total Views"><span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-eye-line"></use></svg></span><span id="busuanzi_value_site_pv"></span></span><script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></footer><a class="hty-icon-button" id="back-to-top" aria-label="back-to-top" href="#"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-up-s-line"></use></svg><svg class="progress-circle-container" viewBox="0 0 100 100"><circle class="progress-circle" id="progressCircle" cx="50" cy="50" r="48" fill="none" stroke="#6200ee" stroke-width="2" stroke-linecap="round"></circle></svg></a><script>function initMourn() {
+  const date = new Date();
+  const today = (date.getMonth() + 1) + "-" + date.getDate()
+  const mourn_days = ["4-4","9-18"]
+  if (mourn_days.includes(today)) {
+    document.documentElement.style.filter = "grayscale(1)";
+  }
+}
+initMourn();</script><div class="aplayer no-destroy" id="aplayer" data-id="140834718" data-server="netease" data-type="playlist" data-fixed="true" data-autoplay data-theme="#6200ee" data-loop="all" data-order="list" data-preload="auto" data-volume="0.7" data-mutex data-lrctype="0" data-listmaxheight="340px" data-storagename="metingjs"></div></div></body></html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#6200ee"><meta name="author" content="god23bin"><meta name="copyright" content="god23bin"><meta name="generator" content="Hexo 6.1.0"><meta name="theme" content="hexo-theme-yun"><title>安卓项目-云音乐简介 | 方圆-起名字真是个难题</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&amp;display=swap" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/star-markdown-css@0.2.4/dist/yun/yun-markdown.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-theme-vars/base.css"><script src="//at.alicdn.com/t/font_1140697_dxory92pb0h.js" async></script><script src="https://cdn.jsdelivr.net/npm/@unocss/runtime/mini.global.js"></script><script src="https://cdn.jsdelivr.net/npm/scrollreveal/dist/scrollreveal.min.js" defer></script><script>function initScrollReveal() {
+  [".post-card",".markdown-body img"].forEach((target)=> {
+    ScrollReveal().reveal(target);
+  })
+}
+document.addEventListener("DOMContentLoaded", initScrollReveal);
+document.addEventListener("pjax:success", initScrollReveal);
+</script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.css"><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js"></script><script>document.addEventListener("DOMContentLoaded", () => {
+  Yun.utils.renderKatex();
+});</script><link class="aplayer-style-marker" rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/aplayer@latest/dist/APlayer.min.css"><script class="aplayer-script-marker" src="https://cdn.jsdelivr.net/npm/aplayer@latest/dist/APlayer.min.js" defer></script><script class="meting-script-marker" src="https://cdn.jsdelivr.net/npm/meting@1/dist/Meting.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/pjax@latest/pjax.min.js" defer></script><script src="/js/pjax.js" defer type="module"></script><script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script><link rel="icon" type="image/png" href="/favicon.ico"><link rel="mask-icon" href="/favicon.ico" color="#6200ee"><link rel="preload" href="/css/hexo-theme-yun.css" as="style"><link rel="prefetch" href="/js/sidebar.js" as="script"><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><script id="yun-config">
+    window.Yun = {}
+    window.CONFIG = {"hostname":"god23bin.github.io","root":"/","title":["方圆","可方","可圆"],"version":"1.8.11","mode":"auto","copycode":true,"page":{"isPost":true},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}.","hits":"${hits} results found","hits_time":"${hits} results found in ${time} ms"},"anonymous_image":"https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/avatar/none.jpg","say":{"api":"https://v1.hitokoto.cn","hitokoto":true},"fireworks":{"colors":["102, 167, 221","62, 131, 225","33, 78, 194"]},"vendors":{"darken":"https://cdn.jsdelivr.net/npm/darken@1.5.0"}};
+  </script><link rel="stylesheet" href="/css/hexo-theme-yun.css"><script src="/js/hexo-theme-yun.js" type="module"></script><meta name="description" content="实现的第二个安卓项目，跟着慕课网做的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="安卓项目-云音乐简介">
+<meta property="og:url" content="https://god23bin.github.io/posts/a5cf7e00/index.html">
+<meta property="og:site_name" content="方圆-起名字真是个难题">
+<meta property="og:description" content="实现的第二个安卓项目，跟着慕课网做的">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144552.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144559.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144606.png">
+<meta property="article:published_time" content="2021-05-30T22:34:24.000Z">
+<meta property="article:modified_time" content="2022-11-20T13:00:01.526Z">
+<meta property="article:author" content="god23bin">
+<meta property="article:tag" content="Android">
+<meta property="article:tag" content="后端">
+<meta property="article:tag" content="项目">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144552.png"><script>(function() {
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+  const setting = localStorage.getItem('darken-mode') || 'auto'
+  if (setting === 'dark' || (prefersDark && setting !== 'light'))
+    document.documentElement.classList.toggle('dark', true)
+})()</script></head><body><script defer src="https://cdn.jsdelivr.net/npm/animejs@latest"></script><script defer src="/js/ui/fireworks.js" type="module"></script><canvas class="fireworks"></canvas><div class="container"><a class="sidebar-toggle hty-icon-button" id="menu-btn"><div class="hamburger hamburger--spin" type="button"><span class="hamburger-box"><span class="hamburger-inner"></span></span></div></a><div class="sidebar-toggle sidebar-overlay"></div><aside class="sidebar"><script src="/js/sidebar.js" type="module"></script><ul class="sidebar-nav"><li class="sidebar-nav-item sidebar-nav-toc hty-icon-button sidebar-nav-active" data-target="post-toc-wrap" title="Table of Contents"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-list-ordered"></use></svg></li><li class="sidebar-nav-item sidebar-nav-overview hty-icon-button" data-target="site-overview-wrap" title="Overview"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-passport-line"></use></svg></li></ul><div class="sidebar-panel" id="site-overview-wrap"><div class="site-info mickey-mouse"><a class="site-author-avatar" href="/about/" title="god23bin"><img width="96" loading="lazy" src="https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516145418.jpeg" alt="god23bin"><span class="site-author-status" title="今天不学习，明天变垃圾">😆</span></a><div class="site-author-name"><a href="/about/">god23bin</a></div><a class="site-name" href="/about/site.html">方圆-起名字真是个难题</a><sub class="site-subtitle"></sub><div class="site-desciption"></div></div><nav class="site-state"><a class="site-state-item hty-icon-button icon-home" href="/" title="Home"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-home-4-line"></use></svg></span></a><div class="site-state-item"><a href="/archives/" title="Archives"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-archive-line"></use></svg></span><span class="site-state-item-count">30</span></a></div><div class="site-state-item"><a href="/categories/" title="Categories"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-2-line"></use></svg></span><span class="site-state-item-count">9</span></a></div><div class="site-state-item"><a href="/tags/" title="Tags"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="site-state-item-count">34</span></a></div><a class="site-state-item hty-icon-button" target="_blank" rel="noopener" href="https://yun.yunyoujun.cn" title="文档"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-settings-line"></use></svg></span></a></nav><hr style="margin-bottom:0.5rem"><div class="links-of-author"><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://github.com/god23bin" title="GitHub" target="_blank" style="color:#181717"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-github-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="god23bin@qq.com" title="E-Mail" target="_blank" style="color:#8E71C1"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-mail-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://music.163.com/#/user/home?id=77844313" title="网易云音乐" target="_blank" style="color:#C10D0C"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-netease-cloud-music-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://space.bilibili.com/341183781" title="哔哩哔哩动画" target="_blank" style="color:#FF8EB3"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-bilibili-line"></use></svg></a></div><hr style="margin:0.5rem 1rem"><div class="links"><a class="links-item hty-icon-button" href="/links/" title="我喜欢的大佬们" style="color:dodgerblue"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-genderless-line"></use></svg></a><a class="links-item hty-icon-button" href="/girls/" title="我的女神天使们" style="color:dodgerblue"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-women-line"></use></svg></a></div><br><a class="links-item hty-icon-button" id="toggle-mode-btn" href="javascript:;" title="Mode" style="color: #f1cb64"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-contrast-2-line"></use></svg></a></div><div class="sidebar-panel sidebar-panel-active" id="post-toc-wrap"><div class="post-toc"><div class="post-toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B4%E4%BD%93%E9%A1%B9%E7%9B%AE%E6%95%88%E6%9E%9C"><span class="toc-text">整体项目效果</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%8A%9F%E8%83%BD"><span class="toc-text">实现的功能</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E7%9A%84%E6%8A%80%E6%9C%AF"><span class="toc-text">使用的技术</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E7%9A%84%E7%9F%A5%E8%AF%86"><span class="toc-text">使用的知识</span></a></li></ol></div></div></div><div class="tag-cloud"><div class="tag-cloud-tags"><a href="/tags/Ajax/" style="font-size: 12px; color: #999">Ajax</a> <a href="/tags/Android/" style="font-size: 16.5px; color: #7391ad">Android</a> <a href="/tags/C%E8%AF%AD%E8%A8%80/" style="font-size: 25.5px; color: #2680d4">C语言</a> <a href="/tags/ES/" style="font-size: 12px; color: #999">ES</a> <a href="/tags/Element-UI/" style="font-size: 12px; color: #999">Element UI</a> <a href="/tags/HashMap/" style="font-size: 12px; color: #999">HashMap</a> <a href="/tags/Hexo/" style="font-size: 12px; color: #999">Hexo</a> <a href="/tags/Java/" style="font-size: 25.5px; color: #2680d4">Java</a> <a href="/tags/Js/" style="font-size: 12px; color: #999">Js</a> <a href="/tags/Json/" style="font-size: 12px; color: #999">Json</a> <a href="/tags/MySQL/" style="font-size: 12px; color: #999">MySQL</a> <a href="/tags/NLP/" style="font-size: 12px; color: #999">NLP</a> <a href="/tags/Node-js/" style="font-size: 12px; color: #999">Node.js</a> <a href="/tags/Spring/" style="font-size: 12px; color: #999">Spring</a> <a href="/tags/Vue-js/" style="font-size: 12px; color: #999">Vue.js</a> <a href="/tags/jQuery/" style="font-size: 12px; color: #999">jQuery</a> <a href="/tags/%E5%85%A5%E9%97%A8/" style="font-size: 25.5px; color: #2680d4">入门</a> <a href="/tags/%E5%87%BD%E6%95%B0%E5%AE%9E%E7%8E%B0/" style="font-size: 25.5px; color: #2680d4">函数实现</a> <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 30px; color: #0078e7">前端</a> <a href="/tags/%E5%90%8E%E7%AB%AF/" style="font-size: 21px; color: #4d89c0">后端</a></div></div></aside><main class="sidebar-translate" id="content"><div id="post"><article class="hty-card post-block" itemscope itemtype="https://schema.org/Article" style="--smc-primary:#6200ee;"><link itemprop="mainEntityOfPage" href="https://god23bin.github.io/posts/a5cf7e00/"><span hidden itemprop="author" itemscope itemtype="https://schema.org/Person"><meta itemprop="name" content="god23bin"><meta itemprop="description"></span><span hidden itemprop="publisher" itemscope itemtype="https://schema.org/Organization"><meta itemprop="name" content="方圆-起名字真是个难题"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">安卓项目-云音乐简介</h1><div class="post-meta"><div class="post-time" style="display:block"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-line"></use></svg></span> <time title="Created: 2021-05-30 22:34:24" itemprop="dateCreated datePublished" datetime="2021-05-30T22:34:24+00:00">2021-05-30</time><span class="post-meta-divider">-</span><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-2-line"></use></svg></span> <time title="Modified: 2022-11-20 13:00:01" itemprop="dateModified" datetime="2022-11-20T13:00:01+00:00">2022-11-20</time></div><span class="post-count"><span class="post-symbolcount"><span class="post-meta-item-icon" title="Word count in article"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-file-word-line"></use></svg></span> <span title="Word count in article">1.1k</span><span class="post-meta-divider">-</span><span class="post-meta-item-icon" title="Reading time"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-timer-line"></use></svg></span> <span title="Reading time">3m</span></span></span><span class="post-busuanzi"><span class="post-meta-divider">-</span><span class="post-meta-item-icon" title="Views"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-eye-line"></use></svg> <span id="busuanzi_value_page_pv"></span></span></span><div class="post-classify"><span class="post-category"> <span class="post-meta-item-icon" style="margin-right:3px;"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-line"></use></svg></span><span itemprop="about" itemscope itemtype="https://schema.org/Thing"><a class="category-item" href="/categories/%E5%90%8E%E7%AB%AF/" style="--text-color:var(--hty-text-color)" itemprop="url" rel="index"><span itemprop="text">后端</span></a></span></span><span class="post-tag"><span class="post-meta-divider">-</span><a class="tag-item" href="/tags/Android/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">Android</span></a><a class="tag-item" href="/tags/%E5%90%8E%E7%AB%AF/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">后端</span></a><a class="tag-item" href="/tags/%E9%A1%B9%E7%9B%AE/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">项目</span></a></span></div><div class="post-author"><span class="author-name">god23bin</span></div></div></header><section class="post-body" itemprop="articleBody"><div class="post-content markdown-body"><h2 id="整体项目效果"><a href="#整体项目效果" class="headerlink" title="整体项目效果"></a>整体项目效果</h2><p>我已经将该项目上传到Github了，可以直接访问，同时代码提交记录如下</p>
+<p><a target="_blank" rel="noopener" href="https://hub.fastgit.org/god23bin/RoadOfLearning_Android/commits/master?before=fc6684222ae1a5707c3d2c3be5c55384799fd827+35&branch=master">Github上我的代码提交记录，可直接访问，此链接是Github镜像，网络稳定</a></p>
+<p><a target="_blank" rel="noopener" href="https://hub.fastgit.org/god23bin/RoadOfLearning_Android/tree/master/MusicDemo">项目地址</a></p>
+<p><img src="https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144552.png" loading="lazy"></p>
+<p><img src="https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144559.png" loading="lazy"></p>
+<p><img src="https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516144606.png" loading="lazy"></p>
+<h2 id="实现的功能"><a href="#实现的功能" class="headerlink" title="实现的功能"></a>实现的功能</h2><ol>
+<li><p>登录</p>
+<ul>
+<li><p>手机号验证</p>
+<ul>
+<li><p>手机号是否为空</p>
+</li>
+<li><p>手机号合法性</p>
+</li>
+<li><p>手机号是否已经注册</p>
+</li>
+</ul>
+</li>
+<li><p>密码验证</p>
+<ul>
+<li>密码是否为空</li>
+</ul>
+</li>
+<li><p>密码进行加密后查询数据库</p>
+</li>
+</ul>
+</li>
+<li><p>注册</p>
+<ul>
+<li>手机号验证<ul>
+<li>手机号是否已经注册</li>
+</ul>
+</li>
+<li>密码验证<ul>
+<li>密码是否为空</li>
+</ul>
+</li>
+<li>确认密码验证<ul>
+<li>两次密码输入是否相同</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>自动登录</p>
+<ul>
+<li>如果已经登录，那么直接从欢迎页面进入主页面</li>
+<li>如果未登录，那么直接从欢迎页面进入登录页面</li>
+</ul>
+</li>
+<li><p>修改密码</p>
+<ul>
+<li>原密码验证</li>
+<li>密码验证</li>
+<li>确认密码验证</li>
+</ul>
+</li>
+<li><p>退出登录</p>
+</li>
+<li><p>展示歌单</p>
+</li>
+<li><p>展示歌曲列表</p>
+</li>
+<li><p>音乐的播放</p>
+</li>
+<li><p>以Material风格开发，具有侧边栏，在主页面往下滚动时，标题栏会进行隐藏</p>
+</li>
+</ol>
+<p>由于时间问题，还有其他功能没有完成。但是基本思路都是差不多的。</p>
+<h2 id="使用的技术"><a href="#使用的技术" class="headerlink" title="使用的技术"></a>使用的技术</h2><ol>
+<li>MaterialDesign</li>
+<li>Realm - 非关系型数据库</li>
+<li>RecyclerView</li>
+<li>AndroidUtilCode - 工具箱，各种验证</li>
+<li>SharedPreferences</li>
+<li>CircleImageView - 圆形图片</li>
+<li>CardView - 卡片</li>
+<li>Glide - 解析网络图片，图片模糊</li>
+<li>XPopup - 弹窗</li>
+<li>PickerView - 城市选择器所需依赖</li>
+<li>WheelView - 城市选择器所需依赖</li>
+<li>Gson - 解析Json</li>
+<li>SwipeRefreshLayout - 实现下拉刷新</li>
+</ol>
+<h2 id="使用的知识"><a href="#使用的知识" class="headerlink" title="使用的知识"></a>使用的知识</h2><ol>
+<li><p>对于一个项目的构建，可以使用全局的一个Application；可以写一个BaseActivity类，作为Activity的父类，用来描述<code>所有Activity的共性</code>。</p>
+</li>
+<li><p>Timer的使用，可以在欢迎页面进行使用，使用其schedule()方法，传入TimerTask实现类，重写run方法，使之等待n秒钟后执行相对应的跳转页面逻辑。</p>
+</li>
+<li><p>控制View控件的显示与隐藏，可以封装一个方法，使用逻辑判断是否需要显示，这个方法可以写在BaseActivity中。</p>
+</li>
+<li><p>自定义控件的知识</p>
+<ul>
+<li>需要声明控件名字与属性，在values下创建attrs.xml下可以声明控件的名字以及属性。</li>
+<li>控件的布局。</li>
+<li>控件所对应的类，继承某种布局，可以是FrameLayout，在该类中进行属性与布局，布局与类进行关联的操作。<ul>
+<li>获取属性</li>
+<li>获取布局</li>
+<li>布局设置属性</li>
+<li>该类addView()绑定布局</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>MaterialDesign风格的主页</p>
+<ul>
+<li>最简单就需要DrawerLayout，里面一个CoordinatorLayout或者FrameLayout，一个NavigationView</li>
+<li>CoordinatorLayout里面就放Toolbar</li>
+<li>想让Toolbar在页面向下滚动时下拉，就需要给Toolbar加上<code>layout_scrollFlags</code>属性。当下面有RecyclerView时，需要把Toolbar放在AppBarLayout中，解决Toolbar被RecyclerView遮挡的问题，加上AppBarLayout的同时，给RecyclerView加上一个行为<code>app:layout_behavior=&quot;@string/appbar_scrolling_view_behavior&quot;</code>，总而言之，一句话，AppBarLayout下面是谁，就给谁加行为。</li>
+</ul>
+</li>
+<li><p>自定义动画的知识</p>
+<ul>
+<li>在res下创建anim目录，然后编写动画的xml。</li>
+<li>AnimationUtils加载动画。</li>
+<li>调用安卓为View提供的startAnimation方法，让某个View执行动画。</li>
+</ul>
+</li>
+<li><p>Realm的使用</p>
+<ul>
+<li>使用之前需要开启事务，然后执行CRUD，最后关闭事务。</li>
+</ul>
+</li>
+<li><p>多次封装，可以分为三层，类似MVC，底层DAO，中层Service，上层Controller；底层封装Realm的操作，向上提供操作方法，比如查询用户，插入用户数据等等。然后中层封装业务逻辑，比如登录方法，该方法先验证数据，然后调用Realm提供的方法。最后上层直接调用中层提供的方法。</p>
+</li>
+<li><p>SharedPreferences的使用</p>
+<ul>
+<li><p>先通过上下文使用 getSharedPreferences() 获取到 SharedPreferences对象 </p>
+</li>
+<li><p>调用 edit() 方法获取 SharedPreferences.Editor，SharedPreferences 通过该接口对其内容进行更新</p>
+</li>
+<li><p>调用相对应的put()方法更新键值对</p>
+</li>
+<li><p>调用 SharedPreferences.Editor 的 commit() 方法将更新提交到 SharedPreferences 中</p>
+</li>
+</ul>
+</li>
+<li><p>MediaPlayer的使用</p>
+<ul>
+<li>需要先准备MediaPlayer对象，直接new出来</li>
+<li>使用setDataSource()方法指定要播放的资源文件。并且在调用start()方法之前需要调用prepare()或prepareAsync()。</li>
+<li>MediaPlayer是可以直接播放网络音频的。只需要在setDataSource()中传入相应的uri即可</li>
+<li>player.setOnPreparedListener()监听</li>
+<li>在监听方法中使用player.start()播放音乐</li>
+</ul>
+</li>
+</ol>
+</div></section><div id="reward-container"><span class="hty-icon-button button-glow" id="reward-button" title="Donate" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === &quot;none&quot;) ? &quot;block&quot; : &quot;none&quot;;"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-hand-coin-line"></use></svg></span><div id="reward-comment">靓仔or靓女，可以请我喝杯咖啡吗？.</div><div id="qr" style="display:none;"><div style="display:inline-block"><a target="_blank" rel="noopener" href="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20220523221203.png"><img loading="lazy" src="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20220523221203.png" alt="支付宝" title="支付宝"></a><div><span style="color:#00A3EE"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-alipay-line"></use></svg></span></div></div><div style="display:inline-block"><a target="_blank" rel="noopener" href="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20220523221130.png"><img loading="lazy" src="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20220523221130.png" alt="微信支付" title="微信支付"></a><div><span style="color:#2DC100"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-wechat-pay-line"></use></svg></span></div></div></div></div><ul class="post-copyright"><li class="post-copyright-author"><strong>Post author: </strong>god23bin</li><li class="post-copyright-link"><strong>Post link: </strong><a href="https://god23bin.github.io/posts/a5cf7e00/" title="安卓项目-云音乐简介">https://god23bin.github.io/posts/a5cf7e00/</a></li><li class="post-copyright-license"><strong>Copyright Notice: </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener" title="CC BY-NC-SA 4.0 "><svg class="icon"><use xlink:href="#icon-creative-commons-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-by-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-nc-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-sa-line"></use></svg></a> unless otherwise stated.</li></ul><script>document.addEventListener('copy', function (event) {
+  const clipboardData = event.clipboardData || window.clipboardData;
+  if (!clipboardData) { return; }
+  const text = window.getSelection().toString();
+  if (text) {
+    event.preventDefault();
+    clipboardData.setData('text/plain', text + '\n\nPost author: god23bin\nPost link: https://god23bin.github.io/posts/a5cf7e00/\nCopyright Notice: All articles in this blog are licensed under CC BY-NC-SA 4.0 unless otherwise stated.');
+  }
+});</script></article><div class="post-nav"><div class="post-nav-item"><a class="post-nav-prev" href="/posts/a6cf7e00/" rel="prev" title="安卓项目-云音乐的构建"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-left-s-line"></use></svg><span class="post-nav-text">安卓项目-云音乐的构建</span></a></div><div class="post-nav-item"><a class="post-nav-next" href="/posts/290f417a/" rel="next" title="C语言-内存函数的实现（二）之memmove"><span class="post-nav-text">C语言-内存函数的实现（二）之memmove</span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-right-s-line"></use></svg></a></div></div></div><div class="hty-card" id="comment"></div></main><footer class="sidebar-translate" id="footer"><div class="copyright"><span>&copy; 2021 – 2022 </span><span class="with-love" id="animate"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-cloud-line"></use></svg></span><span class="author"> god23bin</span></div><div class="powered"><span>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> v6.1.0</span><span class="footer-separator">|</span><span>Theme - <a rel="noopener" href="https://github.com/YunYouJun/hexo-theme-yun" target="_blank"><span>Yun</span></a> v1.8.11</span></div><div class="live-time"><span>本博客已萌萌哒地运行</span><span id="display_live_time"></span><span class="moe-text">(●'◡'●)</span><script>function blog_live_time() {
+  setTimeout(blog_live_time, 1000);
+  const start = new Date('2021-04-01T00:00:00');
+  const now = new Date();
+  const timeDiff = (now.getTime() - start.getTime());
+  const msPerMinute = 60 * 1000;
+  const msPerHour = 60 * msPerMinute;
+  const msPerDay = 24 * msPerHour;
+  const passDay = Math.floor(timeDiff / msPerDay);
+  const passHour = Math.floor((timeDiff % msPerDay) / 60 / 60 / 1000);
+  const passMinute = Math.floor((timeDiff % msPerHour) / 60 / 1000);
+  const passSecond = Math.floor((timeDiff % msPerMinute) / 1000);
+  display_live_time.innerHTML = ` ${passDay} Days ${passHour} Hours ${passMinute} Minutes ${passSecond} Seconds`;
+}
+blog_live_time();
+</script></div><div id="busuanzi"><span id="busuanzi_container_site_uv" title="Total Visitors"><span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-user-line"></use></svg></span><span id="busuanzi_value_site_uv"></span></span><span class="footer-separator">|</span><span id="busuanzi_container_site_pv" title="Total Views"><span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-eye-line"></use></svg></span><span id="busuanzi_value_site_pv"></span></span><script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></footer><a class="hty-icon-button" id="back-to-top" aria-label="back-to-top" href="#"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-up-s-line"></use></svg><svg class="progress-circle-container" viewBox="0 0 100 100"><circle class="progress-circle" id="progressCircle" cx="50" cy="50" r="48" fill="none" stroke="#6200ee" stroke-width="2" stroke-linecap="round"></circle></svg></a><script>function initMourn() {
+  const date = new Date();
+  const today = (date.getMonth() + 1) + "-" + date.getDate()
+  const mourn_days = ["4-4","9-18"]
+  if (mourn_days.includes(today)) {
+    document.documentElement.style.filter = "grayscale(1)";
+  }
+}
+initMourn();</script><div class="aplayer no-destroy" id="aplayer" data-id="140834718" data-server="netease" data-type="playlist" data-fixed="true" data-autoplay data-theme="#6200ee" data-loop="all" data-order="list" data-preload="auto" data-volume="0.7" data-mutex data-lrctype="0" data-listmaxheight="340px" data-storagename="metingjs"></div></div></body></html>

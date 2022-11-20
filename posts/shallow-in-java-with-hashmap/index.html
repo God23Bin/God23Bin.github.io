@@ -1,0 +1,995 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#6200ee"><meta name="author" content="god23bin"><meta name="copyright" content="god23bin"><meta name="generator" content="Hexo 6.1.0"><meta name="theme" content="hexo-theme-yun"><title>深入浅出1.7和1.8的HashMap | 方圆-起名字真是个难题</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&amp;display=swap" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/star-markdown-css@0.2.4/dist/yun/yun-markdown.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-theme-vars/base.css"><script src="//at.alicdn.com/t/font_1140697_dxory92pb0h.js" async></script><script src="https://cdn.jsdelivr.net/npm/@unocss/runtime/mini.global.js"></script><script src="https://cdn.jsdelivr.net/npm/scrollreveal/dist/scrollreveal.min.js" defer></script><script>function initScrollReveal() {
+  [".post-card",".markdown-body img"].forEach((target)=> {
+    ScrollReveal().reveal(target);
+  })
+}
+document.addEventListener("DOMContentLoaded", initScrollReveal);
+document.addEventListener("pjax:success", initScrollReveal);
+</script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.css"><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/copy-tex.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@latest/dist/contrib/auto-render.min.js"></script><script>document.addEventListener("DOMContentLoaded", () => {
+  Yun.utils.renderKatex();
+});</script><link class="aplayer-style-marker" rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/aplayer@latest/dist/APlayer.min.css"><script class="aplayer-script-marker" src="https://cdn.jsdelivr.net/npm/aplayer@latest/dist/APlayer.min.js" defer></script><script class="meting-script-marker" src="https://cdn.jsdelivr.net/npm/meting@1/dist/Meting.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/pjax@latest/pjax.min.js" defer></script><script src="/js/pjax.js" defer type="module"></script><script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script><link rel="icon" type="image/png" href="/favicon.ico"><link rel="mask-icon" href="/favicon.ico" color="#6200ee"><link rel="preload" href="/css/hexo-theme-yun.css" as="style"><link rel="prefetch" href="/js/sidebar.js" as="script"><link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin><script id="yun-config">
+    window.Yun = {}
+    window.CONFIG = {"hostname":"god23bin.github.io","root":"/","title":["方圆","可方","可圆"],"version":"1.8.11","mode":"auto","copycode":true,"page":{"isPost":true},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}.","hits":"${hits} results found","hits_time":"${hits} results found in ${time} ms"},"anonymous_image":"https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/avatar/none.jpg","say":{"api":"https://v1.hitokoto.cn","hitokoto":true},"fireworks":{"colors":["102, 167, 221","62, 131, 225","33, 78, 194"]},"vendors":{"darken":"https://cdn.jsdelivr.net/npm/darken@1.5.0"}};
+  </script><link rel="stylesheet" href="/css/hexo-theme-yun.css"><script src="/js/hexo-theme-yun.js" type="module"></script><meta name="description" content="前言HashMap 是我们最最最常用的东西了，它就是我们在大学中学习数据结构的时候，学到的哈希表这种数据结构。面试中，HashMap 的问题也是常客，现在卷到必须答出来了，是必须会的知识。 我在学习 HashMap 的过程中，也遇到了不少问题，从概念到使用，整个过程都大大小小有些疑惑，然而我这些疑惑是因为我在某个知识环节上出了问题，导致不能理解，当我看了网上各种关于 HashMap 的有关博客以及">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入浅出1.7和1.8的HashMap">
+<meta property="og:url" content="https://god23bin.github.io/posts/shallow-in-java-with-hashmap/index.html">
+<meta property="og:site_name" content="方圆-起名字真是个难题">
+<meta property="og:description" content="前言HashMap 是我们最最最常用的东西了，它就是我们在大学中学习数据结构的时候，学到的哈希表这种数据结构。面试中，HashMap 的问题也是常客，现在卷到必须答出来了，是必须会的知识。 我在学习 HashMap 的过程中，也遇到了不少问题，从概念到使用，整个过程都大大小小有些疑惑，然而我这些疑惑是因为我在某个知识环节上出了问题，导致不能理解，当我看了网上各种关于 HashMap 的有关博客以及">
+<meta property="og:locale">
+<meta property="og:image" content="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20221030194819.png">
+<meta property="og:image" content="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20221030194830.png">
+<meta property="og:image" content="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20221030194843.jpg">
+<meta property="og:image" content="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20221030195148.png">
+<meta property="article:published_time" content="2022-10-30T21:25:00.000Z">
+<meta property="article:modified_time" content="2022-11-20T13:00:01.530Z">
+<meta property="article:author" content="god23bin">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="HashMap">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20221030194819.png"><script>(function() {
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+  const setting = localStorage.getItem('darken-mode') || 'auto'
+  if (setting === 'dark' || (prefersDark && setting !== 'light'))
+    document.documentElement.classList.toggle('dark', true)
+})()</script></head><body><script defer src="https://cdn.jsdelivr.net/npm/animejs@latest"></script><script defer src="/js/ui/fireworks.js" type="module"></script><canvas class="fireworks"></canvas><div class="container"><a class="sidebar-toggle hty-icon-button" id="menu-btn"><div class="hamburger hamburger--spin" type="button"><span class="hamburger-box"><span class="hamburger-inner"></span></span></div></a><div class="sidebar-toggle sidebar-overlay"></div><aside class="sidebar"><script src="/js/sidebar.js" type="module"></script><ul class="sidebar-nav"><li class="sidebar-nav-item sidebar-nav-toc hty-icon-button sidebar-nav-active" data-target="post-toc-wrap" title="Table of Contents"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-list-ordered"></use></svg></li><li class="sidebar-nav-item sidebar-nav-overview hty-icon-button" data-target="site-overview-wrap" title="Overview"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-passport-line"></use></svg></li></ul><div class="sidebar-panel" id="site-overview-wrap"><div class="site-info mickey-mouse"><a class="site-author-avatar" href="/about/" title="god23bin"><img width="96" loading="lazy" src="https://raw.githubusercontent.com/god23bin/pic-bed/master/img/20220516145418.jpeg" alt="god23bin"><span class="site-author-status" title="今天不学习，明天变垃圾">😆</span></a><div class="site-author-name"><a href="/about/">god23bin</a></div><a class="site-name" href="/about/site.html">方圆-起名字真是个难题</a><sub class="site-subtitle"></sub><div class="site-desciption"></div></div><nav class="site-state"><a class="site-state-item hty-icon-button icon-home" href="/" title="Home"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-home-4-line"></use></svg></span></a><div class="site-state-item"><a href="/archives/" title="Archives"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-archive-line"></use></svg></span><span class="site-state-item-count">30</span></a></div><div class="site-state-item"><a href="/categories/" title="Categories"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-2-line"></use></svg></span><span class="site-state-item-count">9</span></a></div><div class="site-state-item"><a href="/tags/" title="Tags"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="site-state-item-count">34</span></a></div><a class="site-state-item hty-icon-button" target="_blank" rel="noopener" href="https://yun.yunyoujun.cn" title="文档"><span class="site-state-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-settings-line"></use></svg></span></a></nav><hr style="margin-bottom:0.5rem"><div class="links-of-author"><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://github.com/god23bin" title="GitHub" target="_blank" style="color:#181717"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-github-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="god23bin@qq.com" title="E-Mail" target="_blank" style="color:#8E71C1"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-mail-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://music.163.com/#/user/home?id=77844313" title="网易云音乐" target="_blank" style="color:#C10D0C"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-netease-cloud-music-line"></use></svg></a><a class="links-of-author-item hty-icon-button" rel="noopener" href="https://space.bilibili.com/341183781" title="哔哩哔哩动画" target="_blank" style="color:#FF8EB3"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-bilibili-line"></use></svg></a></div><hr style="margin:0.5rem 1rem"><div class="links"><a class="links-item hty-icon-button" href="/links/" title="我喜欢的大佬们" style="color:dodgerblue"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-genderless-line"></use></svg></a><a class="links-item hty-icon-button" href="/girls/" title="我的女神天使们" style="color:dodgerblue"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-women-line"></use></svg></a></div><br><a class="links-item hty-icon-button" id="toggle-mode-btn" href="javascript:;" title="Mode" style="color: #f1cb64"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-contrast-2-line"></use></svg></a></div><div class="sidebar-panel sidebar-panel-active" id="post-toc-wrap"><div class="post-toc"><div class="post-toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%A6%E4%B9%A0-HashMap-%E4%B9%8B%E5%89%8D%EF%BC%8C%E6%88%91%E4%BB%AC%E9%9C%80%E8%A6%81%E7%9F%A5%E9%81%93%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-text">学习 HashMap 之前，我们需要知道什么？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%93%88%E5%B8%8C%E8%A1%A8%EF%BC%9F"><span class="toc-text">什么是哈希表？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%93%88%E5%B8%8C%E8%A1%A8%E5%8F%AF%E4%BB%A5%E7%94%A8%E6%9D%A5%E5%B9%B2%E5%98%9B%EF%BC%9F"><span class="toc-text">哈希表可以用来干嘛？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%93%88%E5%B8%8C%E8%A1%A8%E5%A6%82%E4%BD%95%E5%AD%98%E5%82%A8%E6%95%B0%E6%8D%AE%EF%BC%9F"><span class="toc-text">哈希表如何存储数据？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%93%88%E5%B8%8C%E5%86%B2%E7%AA%81%EF%BC%9F"><span class="toc-text">什么是哈希冲突？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3%E5%86%B2%E7%AA%81%EF%BC%9F"><span class="toc-text">如何解决冲突？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8B%89%E9%93%BE%E6%B3%95"><span class="toc-text">拉链法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%93%88%E5%B8%8C%E8%A1%A8%E6%9F%A5%E6%89%BE%E6%95%88%E7%8E%87"><span class="toc-text">哈希表查找效率</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-7-%E7%89%88-HashMap"><span class="toc-text">1.7 版 HashMap</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%8D%E6%AC%A1%E5%88%9D%E8%AF%86-1-7-%E7%9A%84-HashMap"><span class="toc-text">再次初识 1.7 的 HashMap</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#HashMap-%E4%B8%AD%E7%9A%84%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F"><span class="toc-text">HashMap 中的成员变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E4%B8%AA%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95"><span class="toc-text">4 个构造方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%B0%E5%8A%A8-x2F-%E5%93%88%E5%B8%8C%E5%87%BD%E6%95%B0"><span class="toc-text">扰动&#x2F;哈希函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%95%99%E4%B8%AA%E5%8D%B0%E8%B1%A1-indexFor"><span class="toc-text">留个印象-indexFor</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#put-%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="toc-text">put 的过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#get-%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="toc-text">get 的过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E5%8A%A8%E6%89%A9%E5%AE%B9-resize-transfer"><span class="toc-text">自动扩容-resize+transfer</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-7-%E6%80%BB%E7%BB%93"><span class="toc-text">1.7 总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-8-%E7%89%88-HashMap"><span class="toc-text">1.8 版 HashMap</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9C%8B%E7%9C%8B%E5%8C%BA%E5%88%AB"><span class="toc-text">看看区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Node"><span class="toc-text">Node</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%B0%E5%8A%A8%E5%87%BD%E6%95%B0"><span class="toc-text">扰动函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9E%84%E9%80%A0%E6%96%B9%E6%B3%95"><span class="toc-text">构造方法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#put-%E7%9A%84%E5%8F%98%E5%8C%96"><span class="toc-text">put 的变化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#get-%E7%9A%84%E5%8F%98%E5%8C%96"><span class="toc-text">get 的变化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%89%A9%E5%AE%B9%E6%9C%BA%E5%88%B6"><span class="toc-text">扩容机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%90%86%E8%A7%A3-e-hash-amp-oldCap-x3D-x3D-0"><span class="toc-text">理解 (e.hash &amp; oldCap) &#x3D;&#x3D; 0</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E4%BA%8E%E7%BA%A2%E9%BB%91%E6%A0%91"><span class="toc-text">关于红黑树</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-8-%E6%80%BB%E7%BB%93"><span class="toc-text">1.8 总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E8%AF%AD"><span class="toc-text">结语</span></a></li></ol></div></div></div><div class="tag-cloud"><div class="tag-cloud-tags"><a href="/tags/Ajax/" style="font-size: 12px; color: #999">Ajax</a> <a href="/tags/Android/" style="font-size: 16.5px; color: #7391ad">Android</a> <a href="/tags/C%E8%AF%AD%E8%A8%80/" style="font-size: 25.5px; color: #2680d4">C语言</a> <a href="/tags/ES/" style="font-size: 12px; color: #999">ES</a> <a href="/tags/Element-UI/" style="font-size: 12px; color: #999">Element UI</a> <a href="/tags/HashMap/" style="font-size: 12px; color: #999">HashMap</a> <a href="/tags/Hexo/" style="font-size: 12px; color: #999">Hexo</a> <a href="/tags/Java/" style="font-size: 25.5px; color: #2680d4">Java</a> <a href="/tags/Js/" style="font-size: 12px; color: #999">Js</a> <a href="/tags/Json/" style="font-size: 12px; color: #999">Json</a> <a href="/tags/MySQL/" style="font-size: 12px; color: #999">MySQL</a> <a href="/tags/NLP/" style="font-size: 12px; color: #999">NLP</a> <a href="/tags/Node-js/" style="font-size: 12px; color: #999">Node.js</a> <a href="/tags/Spring/" style="font-size: 12px; color: #999">Spring</a> <a href="/tags/Vue-js/" style="font-size: 12px; color: #999">Vue.js</a> <a href="/tags/jQuery/" style="font-size: 12px; color: #999">jQuery</a> <a href="/tags/%E5%85%A5%E9%97%A8/" style="font-size: 25.5px; color: #2680d4">入门</a> <a href="/tags/%E5%87%BD%E6%95%B0%E5%AE%9E%E7%8E%B0/" style="font-size: 25.5px; color: #2680d4">函数实现</a> <a href="/tags/%E5%89%8D%E7%AB%AF/" style="font-size: 30px; color: #0078e7">前端</a> <a href="/tags/%E5%90%8E%E7%AB%AF/" style="font-size: 21px; color: #4d89c0">后端</a></div></div></aside><main class="sidebar-translate" id="content"><div id="post"><article class="hty-card post-block" itemscope itemtype="https://schema.org/Article" style="--smc-primary:#6200ee;"><link itemprop="mainEntityOfPage" href="https://god23bin.github.io/posts/shallow-in-java-with-hashmap/"><span hidden itemprop="author" itemscope itemtype="https://schema.org/Person"><meta itemprop="name" content="god23bin"><meta itemprop="description"></span><span hidden itemprop="publisher" itemscope itemtype="https://schema.org/Organization"><meta itemprop="name" content="方圆-起名字真是个难题"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">深入浅出1.7和1.8的HashMap</h1><div class="post-meta"><div class="post-time" style="display:block"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-line"></use></svg></span> <time title="Created: 2022-10-30 21:25:00" itemprop="dateCreated datePublished" datetime="2022-10-30T21:25:00+00:00">2022-10-30</time><span class="post-meta-divider">-</span><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-calendar-2-line"></use></svg></span> <time title="Modified: 2022-11-20 13:00:01" itemprop="dateModified" datetime="2022-11-20T13:00:01+00:00">2022-11-20</time></div><span class="post-count"><span class="post-symbolcount"><span class="post-meta-item-icon" title="Word count in article"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-file-word-line"></use></svg></span> <span title="Word count in article">12.2k</span><span class="post-meta-divider">-</span><span class="post-meta-item-icon" title="Reading time"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-timer-line"></use></svg></span> <span title="Reading time">52m</span></span></span><span class="post-busuanzi"><span class="post-meta-divider">-</span><span class="post-meta-item-icon" title="Views"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-eye-line"></use></svg> <span id="busuanzi_value_page_pv"></span></span></span><div class="post-classify"><span class="post-category"> <span class="post-meta-item-icon" style="margin-right:3px;"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-folder-line"></use></svg></span><span itemprop="about" itemscope itemtype="https://schema.org/Thing"><a class="category-item" href="/categories/Java/" style="--text-color:var(--hty-text-color)" itemprop="url" rel="index"><span itemprop="text">Java</span></a></span></span><span class="post-tag"><span class="post-meta-divider">-</span><a class="tag-item" href="/tags/Java/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">Java</span></a><a class="tag-item" href="/tags/HashMap/" style="--text-color:var(--hty-text-color)"><span class="post-meta-item-icon"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-price-tag-3-line"></use></svg></span><span class="tag-name">HashMap</span></a></span></div></div></header><section class="post-body" itemprop="articleBody"><div class="post-content markdown-body"><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>HashMap 是我们<strong>最最最</strong>常用的东西了，它就是我们在大学中学习数据结构的时候，学到的哈希表这种数据结构。面试中，HashMap 的问题也是常客，现在卷到必须答出来了，是必须会的知识。</p>
+<p>我在学习 HashMap 的过程中，也遇到了不少问题，从概念到使用，整个过程都大大小小有些疑惑，然而我这些疑惑是因为我在某个知识环节上出了问题，导致不能理解，当我看了网上各种关于 HashMap 的有关博客以及 HashMap 的源码后，大致是理解了，但是我又不确定我是否是真的理解了，决定把 HashMap 的基本必须会的知识全部梳理下来，势必得搞定它！</p>
+<blockquote>
+<p>从最开始只是会使用它的 API 进行数据的存取，到决定要搞定疑惑、搞懂它的底层原理！</p>
+</blockquote>
+<p>本篇文章，将从 0 浅入，从什么是哈希表讲起，然后再说 Java 是怎样实现哈希表的。整个梳理过程，将通过源码这个第一手的资料进行梳理分析，吸收知识、解决疑问，一步一步进行梳理，如果你是对 HashMap 懵懵懂懂的同学，那么欢迎跟着我的节奏一起来梳理！</p>
+<p><strong>阅读完本篇文章，你将收获</strong>：</p>
+<ul>
+<li>认识哈希表、哈希冲突、冲突解决方法…</li>
+<li>明白 Java 中哈希表是怎样实现的…</li>
+<li>table 数组的意思、哈希桶的意思、Entry 的意思、Node 的意思…</li>
+<li>1.7 的 HashMap 源码分析流程…</li>
+<li>明白为什么已经有了 hashCode() 方法了，为什么还需要 hash() 方法</li>
+<li>整个 put、get、扩容的过程…</li>
+<li>1.8 的 HashMap 与 1.7 的不同的地方…</li>
+<li>1.8 的扩容和 1.7 的扩容不一样的地方…</li>
+</ul>
+<p>总之，我相信屏幕前的你读完肯定是有收获的，当然，最大的收获目前是我自己哈哈哈。</p>
+<p><strong>全文1万2000多字，欢迎慢慢食用！由于本人水平有限，文中肯定还有许多不足之处，欢迎大家指出！</strong></p>
+<h2 id="学习-HashMap-之前，我们需要知道什么？"><a href="#学习-HashMap-之前，我们需要知道什么？" class="headerlink" title="学习 HashMap 之前，我们需要知道什么？"></a>学习 HashMap 之前，我们需要知道什么？</h2><p>我们知道 HashMap 就是 Java 中对哈希表这种数据结构的实现，倘若你不知道什么是哈希表，那么自然学习 HashMap 就会有大大的困难，倘若你知道哈希表，但仅仅是懵懵懂懂，有个简单了解，那自然困难会降低许多。</p>
+<p>所以，在学习 HashMap 之前，我们自然需要先知道什么是哈希表，当然还需要知道链表，不过本篇文章仅对哈希表作出说明。下面将开始讲讲哈希表这种抽象的数据结构，之所以说抽象，是因为下面只说哈希表应该具备的功能，但是不会给出具体实现，比如说我们可以简单地使用数组来实现哈希表，是吧，但是 Java 中的哈希表的实现就不是单单一个数组就实现了的。</p>
+<p>好了，废话少说，开搞！</p>
+<p><img src="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20221030194819.png" alt="什么是哈希表？" loading="lazy"></p>
+<h2 id="什么是哈希表？"><a href="#什么是哈希表？" class="headerlink" title="什么是哈希表？"></a>什么是哈希表？</h2><p>哈希表（Hash Table，也有另一个称呼：散列表）。</p>
+<p>哈希表是一种可以通过键（Key）直接访问存储在某个位置上的值（Value）的数据结构。</p>
+<p>Hash 被翻译成「哈希」、「散列」。Key 被翻译成「键」、「关键字」</p>
+<h3 id="哈希表可以用来干嘛？"><a href="#哈希表可以用来干嘛？" class="headerlink" title="哈希表可以用来干嘛？"></a>哈希表可以用来干嘛？</h3><p>很简单，和我们以前学习的数据结构一样，可以用来存储数据。</p>
+<p>这不是废话嘛？确实是废话。</p>
+<p>好吧，那么都可以存储数据，为什么还会出现哈希表？直接用以前的顺序表、链表、栈、队列，这些数据结构来存储不行吗？这个问题问得好，确实，反正都是存储，为什么还要哈希表？</p>
+<p>要回答这个问题，就得说说为什么要有数据结构了，之所以需要数据结构，有一个目的就是：更有效地进行数据的存储，不同的数据结构有不同的特性，顺序表可以通过下标快速的查找出数据、链表可以不需要占用一整片连续的存储空间进行存储等等。哈希表也是一样。</p>
+<h3 id="哈希表如何存储数据？"><a href="#哈希表如何存储数据？" class="headerlink" title="哈希表如何存储数据？"></a>哈希表如何存储数据？</h3><p>哈希表存储数据，给定一个 Key，存储一个 Value。这里就需要用到一个哈希函数（散列函数）。</p>
+<p>以数学中的「函数」来理解，就是有一个函数是这样的 $f(x) &#x3D; y$，一个 $x$ 通过函数 $f$ 映射成值 $y$ 。</p>
+<p>那么哈希函数也可以这样理解：$hash(key) &#x3D; address$</p>
+<p>即键通过哈希函数映射成了一个地址，这个地址可以是数组下标、内存地址等。</p>
+<p>所以呢，存储就是，通过哈希函数，把 Key 映射到某个地址，然后将 Value 存储到这个地址上。</p>
+<p>那么存储后如何获取，如何查找到这个 Value 呢？还是一样，通过哈希函数获得 Key 映射的地址，然后从这个地址取出 Value 。理想的情况下，在哈希表中查找数据，查找的时间复杂度是 $O(1)$ 。</p>
+<p>所谓的「哈希」，就是 Key 通过哈希函数得到一个函数值（哈希值、哈希地址）的过程。</p>
+<h3 id="什么是哈希冲突？"><a href="#什么是哈希冲突？" class="headerlink" title="什么是哈希冲突？"></a>什么是哈希冲突？</h3><p>在数学上，函数的映射可以是一对一，也可以是多对一的，也就是说一个 $x$ 可以映射一个 $y$ ，也可以多个 $x$ 映射到同一个 $y$ 上。</p>
+<p>哈希函数也一样，它有可能出现多对一的情况，即多个不同的 Key，通过哈希函数得到同一个地址（哈希值）。</p>
+<p>这就出现问题了，这种情况，就称为「哈希冲突」。</p>
+<blockquote>
+<p>哈希冲突完整定义：哈希函数可能把两个或两个以上的不同关键字映射到同一个地址，这种情况称为冲突。发生冲突的不同关键字称为同义词。</p>
+</blockquote>
+<p>你想一下，如果两个不同的 Key，比方说 Key1 和 Key2，通过哈希函数得到同一个地址，那么你不解决这个冲突，直接进行存储，那么就是这样的：</p>
+<ul>
+<li>Key1 先存储，Key2 后存储，自然只保存了 Key2</li>
+<li>Key2 先存储，Key1 后存储，自然只保存了 Key1</li>
+</ul>
+<p>这种情况是我们不想看到的，所以我们必须解决冲突。</p>
+<h3 id="如何解决冲突？"><a href="#如何解决冲突？" class="headerlink" title="如何解决冲突？"></a>如何解决冲突？</h3><p>在解决冲突之前，我们应该尽量减少冲突的发生，这就需要设计得OK的哈希函数。当然冲突是必然的，是逃不掉的，当数据量够多的时候，必然会发生冲突，所以就需要设计好解决冲突的方法。</p>
+<p>哈希函数的设计注意点：</p>
+<ul>
+<li>函数的定义域必须包含所有的 Key，函数的值域必须包含所有的 Value。其中值域是跟哈希表的大小有关的。</li>
+<li>函数计算出来的地址（哈希值）应该能够均匀分布在哈希表的内存地址空间上，从而减少冲突的发生。</li>
+<li>函数能够简单就简单实现，这样计算会很快。</li>
+</ul>
+<p>解决冲突的方法：</p>
+<p>解决冲突的思想就是为冲突的 Key 找下一个没有被占用的地址。</p>
+<ul>
+<li>开放定址法</li>
+<li>拉链法</li>
+</ul>
+<p>这里就只说这个拉链法。</p>
+<h3 id="拉链法"><a href="#拉链法" class="headerlink" title="拉链法"></a>拉链法</h3><p>把所有发生冲突的 Key 存储在一个线性链表中，这个链表由 Key 哈希过后得到的地址（哈希地址）唯一标识，这就是拉链法，适用于经常插入和删除的情况。</p>
+<h3 id="哈希表查找效率"><a href="#哈希表查找效率" class="headerlink" title="哈希表查找效率"></a>哈希表查找效率</h3><p>平均查找长度（ASL-Average Search Length），可衡量哈希表的查找效率。</p>
+<p>ASL依赖于哈希表的「装填因子（负载因子）」<br>$$<br>装填因子的定义：α &#x3D; \frac{哈希表中的元素个数}{哈希表的长度}​<br>$$<br>装填因子越大，那么冲突的可能就越大，反之亦然。</p>
+<h2 id="1-7-版-HashMap"><a href="#1-7-版-HashMap" class="headerlink" title="1.7 版 HashMap"></a>1.7 版 HashMap</h2><p><img src="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20221030194830.png" alt="1.7 的HashMap" loading="lazy"></p>
+<p>现在知道什么是哈希表了，那么接下来就看看 Java 中对哈希表的实现——HashMap</p>
+<h3 id="再次初识-1-7-的-HashMap"><a href="#再次初识-1-7-的-HashMap" class="headerlink" title="再次初识 1.7 的 HashMap"></a>再次初识 1.7 的 HashMap</h3><p>我们先看看文档是怎样说的，同时我进行了大体的翻译。（这些说明可以从源码的开头找到）</p>
+<blockquote>
+<p>Hash table based implementation of the <code>Map</code> interface. This implementation provides all of the optional map operations, and permits <code>null</code> values and the <code>null</code> key. (The <code>HashMap</code> class is roughly equivalent to <code>Hashtable</code>, except that it is unsynchronized and permits nulls.) This class makes no guarantees as to the order of the map; in particular, it does not guarantee that the order will remain constant over time.</p>
+</blockquote>
+<p>哈希表是通过实现 Map 接口实现的，因为 Map 接口提供了所有的映射操作，<strong>并且允许空值和空键</strong>（HashMap这个类可以简单的看作是 HashTable 类，与之不同是，HashMap 是<strong>非同步且允许存储空数据的</strong>）。HashMap 这个类<strong>不保证映射的顺序</strong>，特别是不保证这个顺序会随着时间的改变而保持不变。</p>
+<blockquote>
+<p>This implementation provides constant-time performance for the basic operations (<code>get</code> and <code>put</code>), assuming the hash function disperses the elements properly among the buckets. Iteration over collection views requires time proportional to the “capacity” of the <code>HashMap</code> instance (the number of buckets) plus its size (the number of key-value mappings). Thus, it’s very important not to set the initial capacity too high (or the load factor too low) if iteration performance is important.</p>
+</blockquote>
+<p>当哈希函数恰当地将元素映射到哈希桶（the buckets）中，那么就具有常量时间里的基本操作（get 和 put）性能。遍历 HashMap 这个集合的时候，<strong>遍历的时间与 HashMap 实例的容量（哈希桶的数量）加上它的大小（Key和Value的映射数量，即键值对的数量）成正比</strong>，因此，不要设置初始的容量太高，或者负载因子太低，这是非常重要的。</p>
+<blockquote>
+<p>An instance of <code>HashMap</code> has two parameters that affect its performance: <em>initial capacity</em> and <em>load factor</em>. The <em>capacity</em> is the number of buckets in the hash table, and the initial capacity is simply the capacity at the time the hash table is created. The <em>load factor</em> is a measure of how full the hash table is allowed to get before its capacity is automatically increased. When the number of entries in the hash table exceeds the product of the load factor and the current capacity, the hash table is <em>rehashed</em> (that is, internal data structures are rebuilt) so that the hash table has approximately twice the number of buckets.</p>
+</blockquote>
+<p>HashMap 的实例，有两个参数会影响它的性能：<strong>初始容量</strong>和<strong>负载因子</strong>。</p>
+<p>初始容量就是哈希表中的哈希桶的数量，所谓哈希桶，就是一个个的数组元素所占的坑位，我们可以称整个数组为 table 数组，然后里面的一个个元素位置（table[i]）就是哈希桶。你给定一个初始容量，那么这个容量就会在 table 数组创建的时候，作为这个 table 数组的容量，即其长度、大小。</p>
+<p>负载因子是衡量在当前 HashMap 自动扩容前，有多少个哈希桶是可以被获取到的。<strong>当哈希表中的 Entry 对象（键值对）的数量超过了负载因子和当前容量的乘积时（load factor × capacity），那么哈希表就会进行重新哈希（rehashed，重构整个哈希表），table 数组就变为原来的两倍大，即扩容两倍</strong>。</p>
+<blockquote>
+<p>As a general rule, the default load factor (.75) offers a good tradeoff between time and space costs. Higher values decrease the space overhead but increase the lookup cost (reflected in most of the operations of the <code>HashMap</code> class, including <code>get</code> and <code>put</code>). The expected number of entries in the map and its load factor should be taken into account when setting its initial capacity, so as to minimize the number of rehash operations. If the initial capacity is greater than the maximum number of entries divided by the load factor, no rehash operations will ever occur.</p>
+</blockquote>
+<p>通常来说，<strong>默认的负载因子是 0.75</strong>，它是一个很好的平衡，平衡了时间以及空间，这个值过高，虽然会降低空间的开销，但是会增加更多的时间来查找。当设置 HashMap 的初始容量时，应该。考虑好预期的 Entry 数量以及负载因子，以此减少 rehash 的次数。如果哈希表的初始容量（table 数组的长度）大于 Entry 数量除以负载因子，则不会发生 rehash 操作。</p>
+<blockquote>
+<p>If many mappings are to be stored in a <code>HashMap</code> instance, creating it with a sufficiently large capacity will allow the mappings to be stored more efficiently than letting it perform automatic rehashing as needed to grow the table. Note that using many keys with the same <code>hashCode()</code> is a sure way to slow down performance of any hash table. To ameliorate impact, when keys are <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/8/docs/api/java/lang/Comparable.html"><code>Comparable</code></a>, this class may use comparison order among keys to help break ties.</p>
+</blockquote>
+<p>如果需要使用 HashMap 实例来存储许多的映射，那么就需要创建一个够大容量的 HashMap 实例，这样效率是最大的，比起你搞一个小容量的 HashMap，然后让它自己 rehash、table 数组翻倍。注意，使用许多有着相同 hashCode() 的 Key 的话，那肯定是会降低哈希表的性能的，因为冲突多了，为了降低这种影响，当这些 Key 是可比较的情况下，那么哈希表旧可以使用比较的方式去解决。</p>
+<blockquote>
+<p><strong>Note that this implementation is not synchronized.</strong> If multiple threads access a hash map concurrently, and at least one of the threads modifies the map structurally, it <em>must</em> be synchronized externally. (A structural modification is any operation that adds or deletes one or more mappings; merely changing the value associated with a key that an instance already contains is not a structural modification.) This is typically accomplished by synchronizing on some object that naturally encapsulates the map. If no such object exists, the map should be “wrapped” using the <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/7/docs/api/java/util/Collections.html#synchronizedMap(java.util.Map)"><code>Collections.synchronizedMap</code></a> method. This is best done at creation time, to prevent accidental unsynchronized access to the map:</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token class-name">Map</span> m <span class="token operator">=</span> <span class="token class-name">Collections</span><span class="token punctuation">.</span><span class="token function">synchronizedMap</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">HashMap</span><span class="token punctuation">(</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+</blockquote>
+<p>上面的意思就是说，需要<strong>注意 HashMap 是不同步的，也就是非线程安全的</strong>，在多线程并发的情况下对 HashMap 进行操作（添加、删除、映射），就会发生线程安全问题，导致数据不一致，如果想在多线程的情况下使用 HashMap，那么可以使用 <code>Collections.synchronizedMap</code> 方法将普通的 HashMap 包装成同步的 HashMap。不过不推荐这样使用，我们<strong>推荐使用 ConcurrentHashMap</strong>。</p>
+<blockquote>
+<p>The iterators returned by all of this class’s “collection view methods” are <em>fail-fast</em>: if the map is structurally modified at any time after the iterator is created, in any way except through the iterator’s own <code>remove</code> method, the iterator will throw a <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/7/docs/api/java/util/ConcurrentModificationException.html"><code>ConcurrentModificationException</code></a>. Thus, in the face of concurrent modification, the iterator fails quickly and cleanly, rather than risking arbitrary, non-deterministic behavior at an undetermined time in the future.</p>
+</blockquote>
+<p><strong>迭代器快速失败（fail-fast）</strong>：如果 Map 在迭代器进行迭代的时候，Map 中的数据被修改了，那么迭代器就会抛出一个异常：<code>ConcurrentModificationException</code>。因为怕有不确定的行为风险，主要来说就是怕数据不一致，怕线程不安全。</p>
+<hr>
+<p>看完了文档的说明，现在可以知道，HashMap 大概有这样的东西</p>
+<ul>
+<li>哈希表的键值对（Entry）是存储在一个名为 table 的数组中的。Entry 的话，是把 Key、Value、hash 值，封装为 Entry 对象。</li>
+<li>table 数组里面的一个个元素位置（table[i]）就是哈希桶。</li>
+<li>哈希桶存储的就是 Entry，也就是说一个个的哈希桶，存储着一个个的 Entry 对象。</li>
+<li>哈希表的初始容量指的就是 table 数组的长度。</li>
+<li><strong>哈希表的容量</strong>指的是 table 数组的长度；<strong>哈希表的大小</strong>指的是 Key 和 Value 映射的数量，即键值对的数量。这个很重要，需要搞清楚哈希表的「容量」和「容量」，别搞混了。</li>
+<li>当 <code>Entry 对象的数量 &gt; load factor × capacity</code> 时，就会自动扩容，table 数组扩容为原来的两倍。</li>
+<li>哈希表是线程不安全的。</li>
+</ul>
+<p>看到这里，可能还是有些抽象，没事，接下来我们看下源码。</p>
+<h3 id="HashMap-中的成员变量"><a href="#HashMap-中的成员变量" class="headerlink" title="HashMap 中的成员变量"></a>HashMap 中的成员变量</h3><p>首先先看看 HashMap 定义的成员变量：</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">class</span> <span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span>
+    <span class="token keyword">extends</span> <span class="token class-name">AbstractMap</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span>
+    <span class="token keyword">implements</span> <span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span><span class="token punctuation">,</span> <span class="token class-name">Cloneable</span><span class="token punctuation">,</span> <span class="token class-name">Serializable</span>
+<span class="token punctuation">&#123;</span>
+    <span class="token comment">/**
+     * The default initial capacity - MUST be a power of two.
+     * 默认的初始化容量大小为16，这个大小必须为2次幂
+     */</span>
+    <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> DEFAULT_INITIAL_CAPACITY <span class="token operator">=</span> <span class="token number">16</span><span class="token punctuation">;</span>
+    
+    <span class="token comment">/**
+     * The maximum capacity, used if a higher value is implicitly specified
+     * by either of the constructors with arguments.
+     * MUST be a power of two &lt;= 1&lt;&lt;30.
+     * 最大的容量，如果任意带参构造函数传入的值大于这个最大容量，就使用这个最大容量
+     * 1 左移 30位，即 2的30次方
+     */</span>
+    <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> MAXIMUM_CAPACITY <span class="token operator">=</span> <span class="token number">1</span> <span class="token operator">&lt;&lt;</span> <span class="token number">30</span><span class="token punctuation">;</span>
+    
+    <span class="token comment">/**
+     * The load factor used when none specified in constructor.
+     * 默认负载因子 0.75
+     */</span>
+    <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">float</span> DEFAULT_LOAD_FACTOR <span class="token operator">=</span> <span class="token number">0.75f</span><span class="token punctuation">;</span>
+    
+    <span class="token comment">/**
+     * The table, resized as necessary. Length MUST Always be a power of two.
+     * table 数组，必要时就可以重置大小，长度必须总是2次幂，注意这里的数组类型的 Entry
+     * Entry 是一个内部类，下面就可以看到了
+     */</span>
+    <span class="token keyword">transient</span> <span class="token class-name">Entry</span><span class="token punctuation">[</span><span class="token punctuation">]</span> table<span class="token punctuation">;</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span> 
+    <span class="token comment">/**
+     * Entry 类，主要作为一个存储 Key 和 Value 的节点，同时保存当前的通过哈希函数计算出来的 hash
+     * next 指针，主要用于发生冲突时，使用拉链法解决冲突，指向链表下一个 Entry 节点的
+     */</span>
+    <span class="token keyword">static</span> <span class="token keyword">class</span> <span class="token class-name">Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> <span class="token keyword">implements</span> <span class="token class-name">Map<span class="token punctuation">.</span>Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">final</span> <span class="token class-name">K</span> key<span class="token punctuation">;</span>	 <span class="token comment">// 键</span>
+        <span class="token class-name">V</span> value<span class="token punctuation">;</span>		 <span class="token comment">// 值</span>
+        <span class="token class-name">Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> next<span class="token punctuation">;</span> <span class="token comment">// 指向下一个节点 ，从而形成解决冲突的链表</span>
+        <span class="token keyword">final</span> <span class="token keyword">int</span> hash<span class="token punctuation">;</span>  <span class="token comment">// 哈希值</span>
+        <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+    <span class="token punctuation">&#125;</span>
+    
+    <span class="token comment">/**
+     * The number of key-value mappings contained in this map.
+     * size 代表的就是当前存储在 map 中的 Key-Value 映射的数量，即 Entry 的数量
+     */</span>
+    <span class="token keyword">transient</span> <span class="token keyword">int</span> size<span class="token punctuation">;</span>
+    
+    <span class="token comment">/**
+     * The next size value at which to resize (capacity * load factor).
+     * @serial
+     * table 重置大小的阈值，这个阈值就是之前说的 load factor * capacity
+     */</span>
+    <span class="token keyword">int</span> threshold<span class="token punctuation">;</span>
+    
+    <span class="token comment">/**
+     * The load factor for the hash table.
+     *
+     * @serial
+     * 负载因子
+     */</span>
+    <span class="token keyword">final</span> <span class="token keyword">float</span> loadFactor<span class="token punctuation">;</span>
+    
+     <span class="token comment">/**
+     * The number of times this HashMap has been structurally modified
+     * Structural modifications are those that change the number of mappings in
+     * the HashMap or otherwise modify its internal structure (e.g.,
+     * rehash).  This field is used to make iterators on Collection-views of
+     * the HashMap fail-fast.  (See ConcurrentModificationException).
+     * 这个变量主要与 fail-fast 快速失败 有关，后面再说，先留个印象。
+     */</span>
+    <span class="token keyword">transient</span> <span class="token keyword">int</span> modCount<span class="token punctuation">;</span>
+    <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<p>所以说，在 JDK 1.7 及以前，HashMap 的底层数据结构是「数组+链表」，这里的数组指的就是 Entry 类型的 table 数组，同时使用 Entry 作为链表的节点。</p>
+<p>上图说话！</p>
+<p><img src="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20221030194843.jpg" alt="hashmap 1.7 示意图" loading="lazy"></p>
+<h3 id="4-个构造方法"><a href="#4-个构造方法" class="headerlink" title="4 个构造方法"></a>4 个构造方法</h3><p>接下来看看构造方法，HashMap 中有 4 个构造方法，按源码中的出现顺序如下：</p>
+<ul>
+<li><code>public HashMap(int initialCapacity, float loadFactor) </code></li>
+<li><code>public HashMap(int initialCapacity)</code></li>
+<li><code>public HashMap()</code></li>
+<li><code>public HashMap(Map&lt;? extends K, ? extends V&gt; m)</code></li>
+</ul>
+<p>第一个构造方法，两个参数，一个初始容量，另一个负载因子，很明显，就是构造一个有着确切初始容量和确切负载因子的 HashMap 实例，源码是这样的。</p>
+<pre class="language-java" data-language="java"><code class="language-java">  <span class="token comment">/**
+   * Constructs an empty &lt;tt>HashMap&lt;/tt> with the specified initial
+   * capacity and load factor.
+   * 
+   * @param  initialCapacity the initial capacity
+   * @param  loadFactor      the load factor
+   * @throws IllegalArgumentException if the initial capacity is negative
+   *         or the load factor is nonpositive
+   */</span>
+  <span class="token keyword">public</span> <span class="token class-name">HashMap</span><span class="token punctuation">(</span><span class="token keyword">int</span> initialCapacity<span class="token punctuation">,</span> <span class="token keyword">float</span> loadFactor<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+      <span class="token comment">// 下面3个if，是保证代码的健壮性，不是主要内容</span>
+      <span class="token comment">// 初始容量小于0，那么抛出非法参数异常</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>initialCapacity <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+          <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">IllegalArgumentException</span><span class="token punctuation">(</span><span class="token string">"Illegal initial capacity: "</span> <span class="token operator">+</span>
+                                             initialCapacity<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token comment">// 初始容量大于最大容量（2^30），直接将2^30作为初始容量</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>initialCapacity <span class="token operator">></span> MAXIMUM_CAPACITY<span class="token punctuation">)</span>
+          initialCapacity <span class="token operator">=</span> MAXIMUM_CAPACITY<span class="token punctuation">;</span>
+      <span class="token comment">// 如果负载因子小于等于0，或者负载因子有问题，抛出异常</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>loadFactor <span class="token operator">&lt;=</span> <span class="token number">0</span> <span class="token operator">||</span> <span class="token class-name">Float</span><span class="token punctuation">.</span><span class="token function">isNaN</span><span class="token punctuation">(</span>loadFactor<span class="token punctuation">)</span><span class="token punctuation">)</span>
+          <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">IllegalArgumentException</span><span class="token punctuation">(</span><span class="token string">"Illegal load factor: "</span> <span class="token operator">+</span>
+                                             loadFactor<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// 主要内容在这里</span>
+      <span class="token comment">// Find a power of 2 >= initialCapacity</span>
+      <span class="token comment">// 找到一个二次幂的数，如果当前输入的初始容量刚好的二次幂，就不用找了</span>
+      <span class="token keyword">int</span> capacity <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+      <span class="token keyword">while</span> <span class="token punctuation">(</span>capacity <span class="token operator">&lt;</span> initialCapacity<span class="token punctuation">)</span>
+          capacity <span class="token operator">&lt;&lt;=</span> <span class="token number">1</span><span class="token punctuation">;</span>
+
+      <span class="token keyword">this</span><span class="token punctuation">.</span>loadFactor <span class="token operator">=</span> loadFactor<span class="token punctuation">;</span>				<span class="token comment">// 初始化，赋值</span>
+      threshold <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">)</span><span class="token punctuation">(</span>capacity <span class="token operator">*</span> loadFactor<span class="token punctuation">)</span><span class="token punctuation">;</span>	<span class="token comment">// 自动扩容的阈值</span>
+      table <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Entry</span><span class="token punctuation">[</span>capacity<span class="token punctuation">]</span><span class="token punctuation">;</span>				<span class="token comment">// 创建大小为capacity的Entry数组</span>
+      <span class="token function">init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>	<span class="token comment">// 一个空方法，有什么用？这个先不管，之后再说，目前知道上面的就足够了。</span>
+  <span class="token punctuation">&#125;</span></code></pre>
+
+<p>实际上，搞定上面第一个构造方法，后面的构造方法就轻而易举了。第二个构造方法，只是输入了一个初始化容量，直接调用第一个构造方法，而负载因子就是默认的 0.75。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token class-name">HashMap</span><span class="token punctuation">(</span><span class="token keyword">int</span> initialCapacity<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+       <span class="token keyword">this</span><span class="token punctuation">(</span>initialCapacity<span class="token punctuation">,</span> DEFAULT_LOAD_FACTOR<span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token punctuation">&#125;</span></code></pre>
+
+<p>第三个无参的构造方法，直接使用默认 0.75 的负载因子以及默认的初始化容量为 16 的 Entry 类型的 table 数组。然后默认的阈值就是 0.75 × 16 &#x3D; 12，即当 Entry 个数超过 12，存储第 13 个 Entry 的时候，就会进行 resize、rehash。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token class-name">HashMap</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+       <span class="token keyword">this</span><span class="token punctuation">.</span>loadFactor <span class="token operator">=</span> DEFAULT_LOAD_FACTOR<span class="token punctuation">;</span>
+       threshold <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">)</span><span class="token punctuation">(</span>DEFAULT_INITIAL_CAPACITY <span class="token operator">*</span> DEFAULT_LOAD_FACTOR<span class="token punctuation">)</span><span class="token punctuation">;</span>
+       table <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Entry</span><span class="token punctuation">[</span>DEFAULT_INITIAL_CAPACITY<span class="token punctuation">]</span><span class="token punctuation">;</span>
+       <span class="token function">init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token punctuation">&#125;</span></code></pre>
+
+<p>第四个构造方法，接收一个确切的 Map，用 HashMap 包装这个确切的 Map</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token comment">/**
+ * Constructs a new &lt;tt>HashMap&lt;/tt> with the same mappings as the
+ * specified &lt;tt>Map&lt;/tt>.  The &lt;tt>HashMap&lt;/tt> is created with
+ * default load factor (0.75) and an initial capacity sufficient to
+ * hold the mappings in the specified &lt;tt>Map&lt;/tt>.
+ *
+ * @param   m the map whose mappings are to be placed in this map
+ * @throws  NullPointerException if the specified map is null
+ */</span>
+<span class="token keyword">public</span> <span class="token class-name">HashMap</span><span class="token punctuation">(</span><span class="token class-name">Map</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token operator">?</span> <span class="token keyword">extends</span> <span class="token class-name">K</span><span class="token punctuation">,</span> <span class="token operator">?</span> <span class="token keyword">extends</span> <span class="token class-name">V</span><span class="token punctuation">></span></span> m<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">this</span><span class="token punctuation">(</span><span class="token class-name">Math</span><span class="token punctuation">.</span><span class="token function">max</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">)</span> <span class="token punctuation">(</span>m<span class="token punctuation">.</span><span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">/</span> DEFAULT_LOAD_FACTOR<span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">,</span>
+                  DEFAULT_INITIAL_CAPACITY<span class="token punctuation">)</span><span class="token punctuation">,</span> DEFAULT_LOAD_FACTOR<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">putAllForCreate</span><span class="token punctuation">(</span>m<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<p>以上，就是 HashMap 的 4 个构造方法，看来还是可以搞定的嘛！</p>
+<h3 id="扰动-x2F-哈希函数"><a href="#扰动-x2F-哈希函数" class="headerlink" title="扰动&#x2F;哈希函数"></a>扰动&#x2F;哈希函数</h3><p>接着看源码，发现就是 hash() 了。<strong>我们知道，在 Object 中，已经有一个 hashCode() 方法了，这个 hashCode() 可以说是一个哈希函数，那为什么在 HashMap 中，又还需要另一个 hash() 方法呢？</strong></p>
+<p>在源码注释里已经说明了，就是抵御低质量的哈希函数，让 hashCode() 计算出来的哈希码再次扰动（再次哈希），这是非常重要的，因为 HashMap 使用二次幂长度的 table 数组，不进行再次哈希的话，就会遇到 hashCode 在较低位没有差异的冲突，所以需要使用这个 hash() 方法。总而言之，就是再次扰动，降低冲突发生的概率。</p>
+<p><strong>有小伙伴可能有疑惑，「低质量的哈希函数」？hashCode() 不是 Java 固定实现好的吗？为什么怕有低质量的 hashCode() ?</strong></p>
+<p>这个问题问得好，实际上，我们可以发现 hashCode() 是一个本地方法（Native Method）</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token keyword">native</span> <span class="token keyword">int</span> <span class="token function">hashCode</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+
+<p>这就意味着，hashCode() 并不是由 Java 语言实现的，而是由 C 或 C++ 这些非 Java 语言是实现的。<strong>同一个 native 方法，如果用不同的 JVM 去调用，那么运行效率可能是不一样的，因为不同的 JVM 对于某个 native 方法都有自己的实现，所以才需要扰动函数进行再次哈希</strong>。</p>
+<p>hash() 方法（扰动函数）传入的参数是 Key 的 hashCode() 计算出来的哈希码（值），将这个哈希码经过 hash() 方法得到最终的 hash 值。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token comment">/**
+ * Applies a supplemental hash function to a given hashCode, which
+ * defends against poor quality hash functions.  This is critical
+ * because HashMap uses power-of-two length hash tables, that
+ * otherwise encounter collisions for hashCodes that do not differ
+ * in lower bits. Note: Null keys always map to hash 0, thus index 0.
+ */</span>
+<span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">hash</span><span class="token punctuation">(</span><span class="token keyword">int</span> h<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// This function ensures that hashCodes that differ only by</span>
+    <span class="token comment">// constant multiples at each bit position have a bounded</span>
+    <span class="token comment">// number of collisions (approximately 8 at default load factor).</span>
+    h <span class="token operator">^=</span> <span class="token punctuation">(</span>h <span class="token operator">>>></span> <span class="token number">20</span><span class="token punctuation">)</span> <span class="token operator">^</span> <span class="token punctuation">(</span>h <span class="token operator">>>></span> <span class="token number">12</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> h <span class="token operator">^</span> <span class="token punctuation">(</span>h <span class="token operator">>>></span> <span class="token number">7</span><span class="token punctuation">)</span> <span class="token operator">^</span> <span class="token punctuation">(</span>h <span class="token operator">>>></span> <span class="token number">4</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<h3 id="留个印象-indexFor"><a href="#留个印象-indexFor" class="headerlink" title="留个印象-indexFor"></a>留个印象-indexFor</h3><p><code>indexFor()</code> 方法，<code>哈希值</code>和<code>数组长度减一</code>进行<code>与运算</code>。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token comment">/**
+ * Returns index for hash code h.
+ */</span>
+<span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">indexFor</span><span class="token punctuation">(</span><span class="token keyword">int</span> h<span class="token punctuation">,</span> <span class="token keyword">int</span> length<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> h <span class="token operator">&amp;</span> <span class="token punctuation">(</span>length<span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<p>获取哈希表的大小、判断哈希表是否为空</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token comment">/**
+ * Returns the number of key-value mappings in this map.
+ *
+ * @return the number of key-value mappings in this map
+ */</span>
+<span class="token keyword">public</span> <span class="token keyword">int</span> <span class="token function">size</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> size<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">/**
+ * Returns &lt;tt>true&lt;/tt> if this map contains no key-value mappings.
+ *
+ * @return &lt;tt>true&lt;/tt> if this map contains no key-value mappings
+ */</span>
+<span class="token keyword">public</span> <span class="token keyword">boolean</span> <span class="token function">isEmpty</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> size <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<h3 id="put-的过程"><a href="#put-的过程" class="headerlink" title="put 的过程"></a>put 的过程</h3><p>HashMap 的 put() 方法：</p>
+<ul>
+<li><code>public V put(K key, V value)</code></li>
+</ul>
+<p>这个方法就是将某个确切的 Key 与 某个确切的 Value 联系起来，存储到哈希表中，这样它们之间就建立起映射的关系了。</p>
+<p>如果当前哈希表中有了这个 Key，那么就用新的 Value 覆盖掉旧的 Value。</p>
+<p>Key 和 Value 可以是 null，只能有一个 Key 为 null，可以有多个 Value 为 null。</p>
+<pre class="language-java" data-language="java"><code class="language-java">   <span class="token comment">/**
+    * Associates the specified value with the specified key in this map.
+    * If the map previously contained a mapping for the key, the old
+    * value is replaced.
+    *
+    * @param key key with which the specified value is to be associated
+    * @param value value to be associated with the specified key
+    * @return the previous value associated with &lt;tt>key&lt;/tt>, or
+    *         &lt;tt>null&lt;/tt> if there was no mapping for &lt;tt>key&lt;/tt>.
+    *         (A &lt;tt>null&lt;/tt> return can also indicate that the map
+    *         previously associated &lt;tt>null&lt;/tt> with &lt;tt>key&lt;/tt>.)
+    */</span>
+   <span class="token keyword">public</span> <span class="token class-name">V</span> <span class="token function">put</span><span class="token punctuation">(</span><span class="token class-name">K</span> key<span class="token punctuation">,</span> <span class="token class-name">V</span> value<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+       <span class="token keyword">if</span> <span class="token punctuation">(</span>key <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span>
+           <span class="token keyword">return</span> <span class="token function">putForNullKey</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+       <span class="token comment">// 将 Key 的 hashCode 再次哈希得到最终的 hash 值</span>
+       <span class="token keyword">int</span> hash <span class="token operator">=</span> <span class="token function">hash</span><span class="token punctuation">(</span>key<span class="token punctuation">.</span><span class="token function">hashCode</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+       <span class="token comment">// 将 hash 值与数组长度减一进行与运算，计算最终的哈希地址（即数组下标）</span>
+       <span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token function">indexFor</span><span class="token punctuation">(</span>hash<span class="token punctuation">,</span> table<span class="token punctuation">.</span>length<span class="token punctuation">)</span><span class="token punctuation">;</span>
+       <span class="token comment">// for 循环是遍历这个哈希桶上的链表，如果有链表的话，即 e.next != null 说明有链表了</span>
+       <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> e <span class="token operator">=</span> table<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span> e <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">;</span> e <span class="token operator">=</span> e<span class="token punctuation">.</span>next<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+           <span class="token class-name">Object</span> k<span class="token punctuation">;</span>
+           <span class="token comment">// 如果该位置的 hash 值和当前要存储的 Key 的 hash 值一样，说明可能是同一 Key 或不同的 Key</span>
+           <span class="token comment">// 同一 Key 的话就可以覆盖，不同 Key 的话就需要解决这个冲突</span>
+           <span class="token comment">// 先是比较内存地址是否相等，如果内存地址不相等，再去使用 equals 方法判断两个 Key 是不是同一个。</span>
+           <span class="token comment">// 如果内存地址相等，说明是同一个 Key 了，不必使用 equals 了</span>
+           <span class="token comment">// equals 判断是相等的话，那么肯定是同一个 Key 了，因为 hashCode 相等不能说明两个对象相等</span>
+           <span class="token comment">// 但两个对象相等的话，那么 equals 一定相等。</span>
+           <span class="token keyword">if</span> <span class="token punctuation">(</span>e<span class="token punctuation">.</span>hash <span class="token operator">==</span> hash <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>k <span class="token operator">=</span> e<span class="token punctuation">.</span>key<span class="token punctuation">)</span> <span class="token operator">==</span> key <span class="token operator">||</span> key<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>k<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+               <span class="token comment">// 进入这里，说明是同一个 Key，那么就可以用新 Value 覆盖掉旧 Value 了</span>
+               <span class="token class-name">V</span> oldValue <span class="token operator">=</span> e<span class="token punctuation">.</span>value<span class="token punctuation">;</span>
+               e<span class="token punctuation">.</span>value <span class="token operator">=</span> value<span class="token punctuation">;</span>
+               e<span class="token punctuation">.</span><span class="token function">recordAccess</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>	<span class="token comment">// 这个先不管</span>
+               <span class="token keyword">return</span> oldValue<span class="token punctuation">;</span>
+           <span class="token punctuation">&#125;</span>
+       <span class="token punctuation">&#125;</span>
+	<span class="token comment">// 走到这里，说明 Map 中没有这个 Key，那么就可以添加这个 Key-Value 的映射了</span>
+       modCount<span class="token operator">++</span><span class="token punctuation">;</span>	<span class="token comment">// 说明数据发生了改变，fail-fast 会用到</span>
+       <span class="token function">addEntry</span><span class="token punctuation">(</span>hash<span class="token punctuation">,</span> key<span class="token punctuation">,</span> value<span class="token punctuation">,</span> i<span class="token punctuation">)</span><span class="token punctuation">;</span>	<span class="token comment">// 添加这个Entry</span>
+       <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+   <span class="token punctuation">&#125;</span>
+
+   <span class="token comment">/**
+    * Offloaded version of put for null keys
+    */</span>
+   <span class="token keyword">private</span> <span class="token class-name">V</span> <span class="token function">putForNullKey</span><span class="token punctuation">(</span><span class="token class-name">V</span> value<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+       <span class="token comment">// 判断有没有这个 null Key，有就新的 Value 覆盖旧的 Value</span>
+       <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> e <span class="token operator">=</span> table<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">;</span> e <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">;</span> e <span class="token operator">=</span> e<span class="token punctuation">.</span>next<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+           <span class="token keyword">if</span> <span class="token punctuation">(</span>e<span class="token punctuation">.</span>key <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+               <span class="token class-name">V</span> oldValue <span class="token operator">=</span> e<span class="token punctuation">.</span>value<span class="token punctuation">;</span>
+               e<span class="token punctuation">.</span>value <span class="token operator">=</span> value<span class="token punctuation">;</span>
+               e<span class="token punctuation">.</span><span class="token function">recordAccess</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+               <span class="token keyword">return</span> oldValue<span class="token punctuation">;</span>
+           <span class="token punctuation">&#125;</span>
+       <span class="token punctuation">&#125;</span>
+       <span class="token comment">// 没有，那么就添加上这个 Key 为 null 的映射</span>
+       modCount<span class="token operator">++</span><span class="token punctuation">;</span>
+       <span class="token function">addEntry</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">,</span> value<span class="token punctuation">,</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+       <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+   <span class="token punctuation">&#125;</span>
+
+<span class="token keyword">static</span> <span class="token keyword">class</span> <span class="token class-name">Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> <span class="token keyword">implements</span> <span class="token class-name">Map<span class="token punctuation">.</span>Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> <span class="token punctuation">&#123;</span>
+       <span class="token punctuation">.</span><span class="token punctuation">.</span><span class="token punctuation">.</span>
+        <span class="token comment">/**
+        * This method is invoked whenever the value in an entry is
+        * overwritten by an invocation of put(k,v) for a key k that's already
+        * in the HashMap.
+        */</span>
+       <span class="token keyword">void</span> <span class="token function">recordAccess</span><span class="token punctuation">(</span><span class="token class-name">HashMap</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> m<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+       <span class="token punctuation">&#125;</span>       
+       
+   <span class="token punctuation">&#125;</span>
+</code></pre>
+
+<p>所以，整个过程是这样的：</p>
+<p>将 Key 的 hashCode <strong>再次哈希</strong>得到最终的 hash 值，然后通过这个 hash 值与数组长度减一进行<strong>与运算</strong>，计算最终的哈希地址，接着就遍历这个哈希桶（如果这个桶上有链表的话，如果这个哈希桶没有存储元素，那么直接存储到当前哈希桶），判断该位置的 hash 值和当前要存储的 Key 的 hash 值是否一样：</p>
+<ul>
+<li>一样说明是同一个 Key，则可以覆盖</li>
+<li>不一样说明不同 Key，发生哈希冲突，需要解决哈希冲突，那么先是比较这两个 Key 的内存地址是否相等：<ul>
+<li>如果内存地址不相等，再去使用 equals 方法判断两个 Key 是不是同一个。<ul>
+<li>equals 判断两个 Key 为 true，直接新 Value 覆盖旧 Value。</li>
+<li>equals 判断两个 Key 为 false，如果当前哈希桶有下一个节点，那么下一个节点进行循环判断。如果在当前链表节点一直判断出 false，则将这个 Key 封装成 Entry，头插法插入该链表。</li>
+</ul>
+</li>
+<li>如果内存地址相等，说明是同一个 Key 了，不必使用 equals 了，此时直接新 Value 覆盖旧 Value。</li>
+</ul>
+</li>
+</ul>
+<p>那么到这里，我相信你已经看懂了 put 的过程了！</p>
+<h3 id="get-的过程"><a href="#get-的过程" class="headerlink" title="get 的过程"></a>get 的过程</h3><p>HashMap 的 get() 方法：</p>
+<ul>
+<li><code>public V get(Object key)</code></li>
+</ul>
+<p>如果 HashMap 中有这个 Key，那么就返回这个 Key 映射的 Value。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token comment">/**
+ * Returns the value to which the specified key is mapped,
+ * or &#123;@code null&#125; if this map contains no mapping for the key.
+ *
+ * &lt;p>More formally, if this map contains a mapping from a key
+ * &#123;@code k&#125; to a value &#123;@code v&#125; such that &#123;@code (key==null ? k==null :
+ * key.equals(k))&#125;, then this method returns &#123;@code v&#125;; otherwise
+ * it returns &#123;@code null&#125;.  (There can be at most one such mapping.)
+ *
+ * &lt;p>A return value of &#123;@code null&#125; does not &lt;i>necessarily&lt;/i>
+ * indicate that the map contains no mapping for the key; it's also
+ * possible that the map explicitly maps the key to &#123;@code null&#125;.
+ * The &#123;@link #containsKey containsKey&#125; operation may be used to
+ * distinguish these two cases.
+ *
+ * @see #put(Object, Object)
+ */</span>
+<span class="token keyword">public</span> <span class="token class-name">V</span> <span class="token function">get</span><span class="token punctuation">(</span><span class="token class-name">Object</span> key<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>key <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token function">getForNullKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 将 Key 的 hashCode 再次哈希得到最终的 hash 值</span>
+    <span class="token keyword">int</span> hash <span class="token operator">=</span> <span class="token function">hash</span><span class="token punctuation">(</span>key<span class="token punctuation">.</span><span class="token function">hashCode</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// indexFor(hash, table.length) 获取 Key 所在 table 数组中的下标</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> e <span class="token operator">=</span> table<span class="token punctuation">[</span><span class="token function">indexFor</span><span class="token punctuation">(</span>hash<span class="token punctuation">,</span> table<span class="token punctuation">.</span>length<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+         e <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+         e <span class="token operator">=</span> e<span class="token punctuation">.</span>next<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// for 循环是遍历这个哈希桶上的链表，如果有链表的话</span>
+        <span class="token class-name">Object</span> k<span class="token punctuation">;</span>
+        <span class="token comment">// 判断该位置上的 Key 是否为我们需要的 Key</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>e<span class="token punctuation">.</span>hash <span class="token operator">==</span> hash <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>k <span class="token operator">=</span> e<span class="token punctuation">.</span>key<span class="token punctuation">)</span> <span class="token operator">==</span> key <span class="token operator">||</span> key<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>k<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token keyword">return</span> e<span class="token punctuation">.</span>value<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<p>相信你搞懂了 put 的过程，那么 get 的过程也不难理解，过程是这样的：</p>
+<p>将 Key 的 hashCode <strong>再次哈希</strong>得到最终的 hash 值，然后通过这个 hash 值与数组长度减一进行<strong>与运算</strong>，计算最终的哈希地址（被封装成 <code>indexFor</code> 方法了），接着还是一样，遍历哈希桶，判断该位置上的 Key 是否为我们需要的 Key。</p>
+<h3 id="自动扩容-resize-transfer"><a href="#自动扩容-resize-transfer" class="headerlink" title="自动扩容-resize+transfer"></a>自动扩容-resize+transfer</h3><p>上面我们也说了，有一个阈值，即 <code>load factor × capacity</code> 这个阈值，如果当前哈希表的大小超过了这个阈值，那么哈希表是需要扩容的，在 HashMap 中，它是不要手动干预，是会自动进行扩容的。那么它是怎样自动扩容的？</p>
+<p>回顾：</p>
+<ul>
+<li>哈希表的容量：是指 table 数组的长度。</li>
+<li>哈希表的大小：是指存储在哈希表中的元素（Entry 类型的元素）的个数。</li>
+<li>capacity（容量）：默认16</li>
+<li>load factor（负载因子）：默认0.75</li>
+<li>threshold（阈值）：默认 0.75 × 16 &#x3D; 12，即哈希表大小超过12就会自动扩容</li>
+</ul>
+<p>我们回去看下 put 操作，可以看到倒数第二行代码有个 <code>addEntry()</code> 方法</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token class-name">V</span> <span class="token function">put</span><span class="token punctuation">(</span><span class="token class-name">K</span> key<span class="token punctuation">,</span> <span class="token class-name">V</span> value<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>key <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span>
+        <span class="token keyword">return</span> <span class="token function">putForNullKey</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> hash <span class="token operator">=</span> <span class="token function">hash</span><span class="token punctuation">(</span>key<span class="token punctuation">.</span><span class="token function">hashCode</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token function">indexFor</span><span class="token punctuation">(</span>hash<span class="token punctuation">,</span> table<span class="token punctuation">.</span>length<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token class-name">Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> e <span class="token operator">=</span> table<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span> e <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">;</span> e <span class="token operator">=</span> e<span class="token punctuation">.</span>next<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">Object</span> k<span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>e<span class="token punctuation">.</span>hash <span class="token operator">==</span> hash <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>k <span class="token operator">=</span> e<span class="token punctuation">.</span>key<span class="token punctuation">)</span> <span class="token operator">==</span> key <span class="token operator">||</span> key<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>k<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">V</span> oldValue <span class="token operator">=</span> e<span class="token punctuation">.</span>value<span class="token punctuation">;</span>
+            e<span class="token punctuation">.</span>value <span class="token operator">=</span> value<span class="token punctuation">;</span>
+            e<span class="token punctuation">.</span><span class="token function">recordAccess</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">return</span> oldValue<span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+
+    modCount<span class="token operator">++</span><span class="token punctuation">;</span>
+    <span class="token function">addEntry</span><span class="token punctuation">(</span>hash<span class="token punctuation">,</span> key<span class="token punctuation">,</span> value<span class="token punctuation">,</span> i<span class="token punctuation">)</span><span class="token punctuation">;</span>	<span class="token comment">// 就是这里，添加 Entry 对象</span>
+    <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<p>看 <code>addEntry()</code> 的源码，是这样的：</p>
+<ul>
+<li>存储 Key、Value、hash 值到指定的哈希桶中。</li>
+<li>判断当前哈希表大小加一后，有没有超出阈值。超过阈值则进行哈希表容量的 <code>resize()</code> 操作。</li>
+</ul>
+<p>所以这个扩容就是通过 <code>addEntry()</code> 方法里的 <code>size++ &gt;= threshold</code> 进行判断是否需要扩容，进而调用扩容方法 <code>resize()</code> 实现所谓的自动扩容。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token comment">/**
+ * Adds a new entry with the specified key, value and hash code to
+ * the specified bucket.  It is the responsibility of this
+ * method to resize the table if appropriate.
+ *
+ * Subclass overrides this to alter the behavior of put method.
+ */</span>
+<span class="token keyword">void</span> <span class="token function">addEntry</span><span class="token punctuation">(</span><span class="token keyword">int</span> hash<span class="token punctuation">,</span> <span class="token class-name">K</span> key<span class="token punctuation">,</span> <span class="token class-name">V</span> value<span class="token punctuation">,</span> <span class="token keyword">int</span> bucketIndex<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token class-name">Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> e <span class="token operator">=</span> table<span class="token punctuation">[</span>bucketIndex<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    table<span class="token punctuation">[</span>bucketIndex<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token punctuation">></span></span><span class="token punctuation">(</span>hash<span class="token punctuation">,</span> key<span class="token punctuation">,</span> value<span class="token punctuation">,</span> e<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>size<span class="token operator">++</span> <span class="token operator">>=</span> threshold<span class="token punctuation">)</span>
+        <span class="token function">resize</span><span class="token punctuation">(</span><span class="token number">2</span> <span class="token operator">*</span> table<span class="token punctuation">.</span>length<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<p>我们可以看到 <code>resize()</code> 的时候，参数是<strong>两倍的数组长度</strong>，也就是说将哈希表的容量扩大成原来的两倍。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token function">resize</span><span class="token punctuation">(</span><span class="token number">2</span> <span class="token operator">*</span> table<span class="token punctuation">.</span>length<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+
+<p>那下面我们看看扩容是怎样子的，看看 <code>resize()</code> 源码：</p>
+<p>源码注释也说了，将会对 HashMap 实例存储的 Entry 进行 rehash（再次哈希）到一个扩容后的新数组。如果当前容量是最大容量（MAXIMUM_CAPACITY，1 &lt;&lt;&lt; 30，即$2^{30}$）了，那么就不会进行扩容，同时设置阈值为 <code>Integer.MAX_VALUE</code>。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token comment">/**
+ * Rehashes the contents of this map into a new array with a
+ * larger capacity.  This method is called automatically when the
+ * number of keys in this map reaches its threshold.
+ *
+ * If current capacity is MAXIMUM_CAPACITY, this method does not
+ * resize the map, but sets threshold to Integer.MAX_VALUE.
+ * This has the effect of preventing future calls.
+ *
+ * @param newCapacity the new capacity, MUST be a power of two;
+ *        must be greater than current capacity unless current
+ *        capacity is MAXIMUM_CAPACITY (in which case value
+ *        is irrelevant).
+ */</span>
+<span class="token keyword">void</span> <span class="token function">resize</span><span class="token punctuation">(</span><span class="token keyword">int</span> newCapacity<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token class-name">Entry</span><span class="token punctuation">[</span><span class="token punctuation">]</span> oldTable <span class="token operator">=</span> table<span class="token punctuation">;</span>			<span class="token comment">// 原数组</span>
+    <span class="token keyword">int</span> oldCapacity <span class="token operator">=</span> oldTable<span class="token punctuation">.</span>length<span class="token punctuation">;</span>	<span class="token comment">// 原数组长度 = 原容量</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>oldCapacity <span class="token operator">==</span> MAXIMUM_CAPACITY<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        threshold <span class="token operator">=</span> <span class="token class-name">Integer</span><span class="token punctuation">.</span>MAX_VALUE<span class="token punctuation">;</span>
+        <span class="token keyword">return</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token comment">// 创建一个比原数组长度大两倍的新数组</span>
+    <span class="token class-name">Entry</span><span class="token punctuation">[</span><span class="token punctuation">]</span> newTable <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Entry</span><span class="token punctuation">[</span>newCapacity<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    <span class="token comment">// 转移原数组中的元素（Entry 对象）到新数组中</span>
+    <span class="token function">transfer</span><span class="token punctuation">(</span>newTable<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token comment">// 原数组引用指向新数组</span>
+    table <span class="token operator">=</span> newTable<span class="token punctuation">;</span>
+    <span class="token comment">// 重新计算阈值</span>
+    threshold <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">)</span><span class="token punctuation">(</span>newCapacity <span class="token operator">*</span> loadFactor<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">/**
+ * Transfers all entries from current table to newTable.
+ */</span>
+<span class="token keyword">void</span> <span class="token function">transfer</span><span class="token punctuation">(</span><span class="token class-name">Entry</span><span class="token punctuation">[</span><span class="token punctuation">]</span> newTable<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token class-name">Entry</span><span class="token punctuation">[</span><span class="token punctuation">]</span> src <span class="token operator">=</span> table<span class="token punctuation">;</span>	<span class="token comment">// 原数组</span>
+    <span class="token keyword">int</span> newCapacity <span class="token operator">=</span> newTable<span class="token punctuation">.</span>length<span class="token punctuation">;</span>
+    <span class="token comment">// 遍历原数组</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> j <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> j <span class="token operator">&lt;</span> src<span class="token punctuation">.</span>length<span class="token punctuation">;</span> j<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// e 可以看成一个指针，指向第j个哈希桶上的Entry节点</span>
+        <span class="token class-name">Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> e <span class="token operator">=</span> src<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>e <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            src<span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+            <span class="token keyword">do</span> <span class="token punctuation">&#123;</span>
+                <span class="token comment">// 看当前位置上的 Entry 有没有 next，有则说明是链表</span>
+                <span class="token comment">// next 是 null，说明没有链表，那么就不会执行下面的 while</span>
+                <span class="token class-name">Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> next <span class="token operator">=</span> e<span class="token punctuation">.</span>next<span class="token punctuation">;</span>
+                <span class="token comment">// 计算当前 Entry 在新数组中的位置</span>
+                <span class="token keyword">int</span> i <span class="token operator">=</span> <span class="token function">indexFor</span><span class="token punctuation">(</span>e<span class="token punctuation">.</span>hash<span class="token punctuation">,</span> newCapacity<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token comment">// e 的下一个节点指向新的哈希桶，可以把哈希桶当作表头，这样方便头插法插入元素</span>
+                e<span class="token punctuation">.</span>next <span class="token operator">=</span> newTable<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
+                <span class="token comment">// 新的哈希桶存储这个节点</span>
+                newTable<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">=</span> e<span class="token punctuation">;</span>
+                <span class="token comment">// 移动指针 e 指向下一节点</span>
+                e <span class="token operator">=</span> next<span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">while</span> <span class="token punctuation">(</span>e <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<p>所以，总的来说，<strong>扩容的过程是这样的</strong>：</p>
+<p>我们 put 一个元素到哈希表，这个过程会调用 <code>addEntry()</code> 方法，在实际插入一个元素后，判断当前 size 是否大于阈值，大于的话就会扩容，扩容的话，会传入一个两倍原数组大小的参数，然后创建一个新的数组，这个数组的长度是原数组的两倍，再通过一个 <code>transfer()</code> 方法，将原数组中的 Entry 重新哈希（rehash）到新数组中，最后将原数组引用指向新数组，同时计算下新的阈值。</p>
+<h3 id="1-7-总结"><a href="#1-7-总结" class="headerlink" title="1.7 总结"></a>1.7 总结</h3><p>1.7 的 HashMap，<strong>底层是 Entry 类型的数组 + Entry 类型的链表</strong>。</p>
+<p>这个数组称为 <strong>table 数组</strong>（也有的人称为桶数组），数组上的每个位置，可以称为<strong>哈希桶</strong>，每一个哈希桶都是存储 Entry 类型的元素的，同时可以知道<strong>每个哈希桶位置上都可以对应着一个解决冲突的链表的位置</strong>。</p>
+<p>如果当要存储的 Key-Value 的 Key 与当前位置上的 Key 发生冲突，那么就需要进行<strong>头插法</strong>，将该 Key 插入当前哈希桶对应的链表。</p>
+<p>如果当前存储的元素的个数超过了<strong>阈值</strong>（threshold &#x3D; load factor × capacity），那么就会进行<strong>扩容</strong>，创建一个<strong>两倍原数组大小的新数组</strong>，然后将原数组中的元素<strong>重新哈希</strong>到新数组中，最后原数组引用指向新数组，进而完成扩容。</p>
+<h2 id="1-8-版-HashMap"><a href="#1-8-版-HashMap" class="headerlink" title="1.8 版 HashMap"></a>1.8 版 HashMap</h2><p><img src="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20221030195148.png" alt="1.8 的HashMap" loading="lazy"></p>
+<p>在 JDK 1.8 开始，就变成了「数组+链表&#x2F;红黑树」</p>
+<p>看看源码与1.7有什么区别</p>
+<h3 id="看看区别"><a href="#看看区别" class="headerlink" title="看看区别"></a>看看区别</h3><ul>
+<li>DEFAULT_INITIAL_CAPACITY 写法变高级了，从 <code>16</code> 直接改成 <code>1 &lt;&lt; 4</code></li>
+</ul>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> DEFAULT_INITIAL_CAPACITY <span class="token operator">=</span> <span class="token number">1</span> <span class="token operator">&lt;&lt;</span> <span class="token number">4</span><span class="token punctuation">;</span> <span class="token comment">// aka 16</span></code></pre>
+
+<ul>
+<li>出现一个<code>TREEIFY_THRESHOLD</code>，树化阈值，即链表转成红黑树的阈值，默认为 8。</li>
+</ul>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> TREEIFY_THRESHOLD <span class="token operator">=</span> <span class="token number">8</span><span class="token punctuation">;</span></code></pre>
+
+<ul>
+<li>出现一个<code>UNTREEIFY_THRESHOLD</code>，解除树化的阈值，即红黑树中的 Entry 数量小于 6，那么就从红黑树退化成链表。</li>
+</ul>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> UNTREEIFY_THRESHOLD <span class="token operator">=</span> <span class="token number">6</span><span class="token punctuation">;</span></code></pre>
+
+<ul>
+<li>出现一个<code>MIN_TREEIFY_CAPACITY</code>，最小树化容量，即 table 数组的长度最小需要 64，才有机会树化。</li>
+</ul>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> MIN_TREEIFY_CAPACITY <span class="token operator">=</span> <span class="token number">64</span><span class="token punctuation">;</span></code></pre>
+
+<h3 id="Node"><a href="#Node" class="headerlink" title="Node"></a>Node</h3><p>接着，我们看到这里定义了一个 Node 节点，通过对比 1.7 版的，可以发现这个把 1.7 中的 Entry 换了个名，定义成 Node 节点。也就是说，在 1.8 中的 table 数组，其类型不再是 Entry 类型，而是 Node 类型，即 Node 类型的 table 数组。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token comment">/**
+ * Basic hash bin node, used for most entries.  (See below for
+ * TreeNode subclass, and in LinkedHashMap for its Entry subclass.)
+ */</span>
+<span class="token keyword">static</span> <span class="token keyword">class</span> <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> <span class="token keyword">implements</span> <span class="token class-name">Map<span class="token punctuation">.</span>Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">final</span> <span class="token keyword">int</span> hash<span class="token punctuation">;</span>
+    <span class="token keyword">final</span> <span class="token class-name">K</span> key<span class="token punctuation">;</span>
+    <span class="token class-name">V</span> value<span class="token punctuation">;</span>
+    <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> next<span class="token punctuation">;</span>
+
+    <span class="token class-name">Node</span><span class="token punctuation">(</span><span class="token keyword">int</span> hash<span class="token punctuation">,</span> <span class="token class-name">K</span> key<span class="token punctuation">,</span> <span class="token class-name">V</span> value<span class="token punctuation">,</span> <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> next<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>hash <span class="token operator">=</span> hash<span class="token punctuation">;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>key <span class="token operator">=</span> key<span class="token punctuation">;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>value <span class="token operator">=</span> value<span class="token punctuation">;</span>
+        <span class="token keyword">this</span><span class="token punctuation">.</span>next <span class="token operator">=</span> next<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">final</span> <span class="token class-name">K</span> <span class="token function">getKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span>        <span class="token punctuation">&#123;</span> <span class="token keyword">return</span> key<span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+    <span class="token keyword">public</span> <span class="token keyword">final</span> <span class="token class-name">V</span> <span class="token function">getValue</span><span class="token punctuation">(</span><span class="token punctuation">)</span>      <span class="token punctuation">&#123;</span> <span class="token keyword">return</span> value<span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+    <span class="token keyword">public</span> <span class="token keyword">final</span> <span class="token class-name">String</span> <span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> <span class="token keyword">return</span> key <span class="token operator">+</span> <span class="token string">"="</span> <span class="token operator">+</span> value<span class="token punctuation">;</span> <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">final</span> <span class="token keyword">int</span> <span class="token function">hashCode</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">return</span> <span class="token class-name">Objects</span><span class="token punctuation">.</span><span class="token function">hashCode</span><span class="token punctuation">(</span>key<span class="token punctuation">)</span> <span class="token operator">^</span> <span class="token class-name">Objects</span><span class="token punctuation">.</span><span class="token function">hashCode</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">final</span> <span class="token class-name">V</span> <span class="token function">setValue</span><span class="token punctuation">(</span><span class="token class-name">V</span> newValue<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">V</span> oldValue <span class="token operator">=</span> value<span class="token punctuation">;</span>
+        value <span class="token operator">=</span> newValue<span class="token punctuation">;</span>
+        <span class="token keyword">return</span> oldValue<span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">public</span> <span class="token keyword">final</span> <span class="token keyword">boolean</span> <span class="token function">equals</span><span class="token punctuation">(</span><span class="token class-name">Object</span> o<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>o <span class="token operator">==</span> <span class="token keyword">this</span><span class="token punctuation">)</span>
+            <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>o <span class="token keyword">instanceof</span> <span class="token class-name">Map<span class="token punctuation">.</span>Entry</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">Map<span class="token punctuation">.</span>Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token operator">?</span><span class="token punctuation">,</span><span class="token operator">?</span><span class="token punctuation">></span></span> e <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">Map<span class="token punctuation">.</span>Entry</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token operator">?</span><span class="token punctuation">,</span><span class="token operator">?</span><span class="token punctuation">></span></span><span class="token punctuation">)</span>o<span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token class-name">Objects</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>key<span class="token punctuation">,</span> e<span class="token punctuation">.</span><span class="token function">getKey</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span>
+                <span class="token class-name">Objects</span><span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>value<span class="token punctuation">,</span> e<span class="token punctuation">.</span><span class="token function">getValue</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                <span class="token keyword">return</span> <span class="token boolean">true</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">return</span> <span class="token boolean">false</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<p>Node 数组</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">transient</span> <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span><span class="token punctuation">[</span><span class="token punctuation">]</span> table<span class="token punctuation">;</span></code></pre>
+
+<h3 id="扰动函数"><a href="#扰动函数" class="headerlink" title="扰动函数"></a>扰动函数</h3><p>hash()，扰动函数发生了变化，1.8 源码是这样的：</p>
+<p>让 Key 的 hashCode 与上 hashCode 无符号右移 16 位，最终与运算的结果就是最终的 hash 值。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> <span class="token function">hash</span><span class="token punctuation">(</span><span class="token class-name">Object</span> key<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">int</span> h<span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token punctuation">(</span>key <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token operator">?</span> <span class="token number">0</span> <span class="token operator">:</span> <span class="token punctuation">(</span>h <span class="token operator">=</span> key<span class="token punctuation">.</span><span class="token function">hashCode</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">^</span> <span class="token punctuation">(</span>h <span class="token operator">>>></span> <span class="token number">16</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<p>而 1.7 的是这样的：</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">static</span> <span class="token keyword">int</span> <span class="token function">hash</span><span class="token punctuation">(</span><span class="token keyword">int</span> h<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    h <span class="token operator">^=</span> <span class="token punctuation">(</span>h <span class="token operator">>>></span> <span class="token number">20</span><span class="token punctuation">)</span> <span class="token operator">^</span> <span class="token punctuation">(</span>h <span class="token operator">>>></span> <span class="token number">12</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> h <span class="token operator">^</span> <span class="token punctuation">(</span>h <span class="token operator">>>></span> <span class="token number">7</span><span class="token punctuation">)</span> <span class="token operator">^</span> <span class="token punctuation">(</span>h <span class="token operator">>>></span> <span class="token number">4</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<h3 id="构造方法"><a href="#构造方法" class="headerlink" title="构造方法"></a>构造方法</h3><p>构造方法也有变化，但是主要的过程还是一样的，主要的区别就是，此时的 table 数组还没有被创建出来。</p>
+<pre class="language-java" data-language="java"><code class="language-java">   <span class="token comment">/**
+    * Returns a power of two size for the given target capacity.
+    */</span>
+   <span class="token keyword">static</span> <span class="token keyword">final</span> <span class="token keyword">int</span> <span class="token function">tableSizeFor</span><span class="token punctuation">(</span><span class="token keyword">int</span> cap<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+       <span class="token keyword">int</span> n <span class="token operator">=</span> cap <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">;</span>
+       n <span class="token operator">|=</span> n <span class="token operator">>>></span> <span class="token number">1</span><span class="token punctuation">;</span>
+       n <span class="token operator">|=</span> n <span class="token operator">>>></span> <span class="token number">2</span><span class="token punctuation">;</span>
+       n <span class="token operator">|=</span> n <span class="token operator">>>></span> <span class="token number">4</span><span class="token punctuation">;</span>
+       n <span class="token operator">|=</span> n <span class="token operator">>>></span> <span class="token number">8</span><span class="token punctuation">;</span>
+       n <span class="token operator">|=</span> n <span class="token operator">>>></span> <span class="token number">16</span><span class="token punctuation">;</span>
+       <span class="token keyword">return</span> <span class="token punctuation">(</span>n <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token operator">?</span> <span class="token number">1</span> <span class="token operator">:</span> <span class="token punctuation">(</span>n <span class="token operator">>=</span> MAXIMUM_CAPACITY<span class="token punctuation">)</span> <span class="token operator">?</span> MAXIMUM_CAPACITY <span class="token operator">:</span> n <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">;</span>
+   <span class="token punctuation">&#125;</span>
+
+<span class="token keyword">public</span> <span class="token class-name">HashMap</span><span class="token punctuation">(</span><span class="token keyword">int</span> initialCapacity<span class="token punctuation">,</span> <span class="token keyword">float</span> loadFactor<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+       <span class="token keyword">if</span> <span class="token punctuation">(</span>initialCapacity <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">)</span>
+           <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">IllegalArgumentException</span><span class="token punctuation">(</span><span class="token string">"Illegal initial capacity: "</span> <span class="token operator">+</span>
+                                              initialCapacity<span class="token punctuation">)</span><span class="token punctuation">;</span>
+       <span class="token keyword">if</span> <span class="token punctuation">(</span>initialCapacity <span class="token operator">></span> MAXIMUM_CAPACITY<span class="token punctuation">)</span>
+           initialCapacity <span class="token operator">=</span> MAXIMUM_CAPACITY<span class="token punctuation">;</span>
+       <span class="token keyword">if</span> <span class="token punctuation">(</span>loadFactor <span class="token operator">&lt;=</span> <span class="token number">0</span> <span class="token operator">||</span> <span class="token class-name">Float</span><span class="token punctuation">.</span><span class="token function">isNaN</span><span class="token punctuation">(</span>loadFactor<span class="token punctuation">)</span><span class="token punctuation">)</span>
+           <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">IllegalArgumentException</span><span class="token punctuation">(</span><span class="token string">"Illegal load factor: "</span> <span class="token operator">+</span>
+                                              loadFactor<span class="token punctuation">)</span><span class="token punctuation">;</span>
+       <span class="token keyword">this</span><span class="token punctuation">.</span>loadFactor <span class="token operator">=</span> loadFactor<span class="token punctuation">;</span>
+       <span class="token keyword">this</span><span class="token punctuation">.</span>threshold <span class="token operator">=</span> <span class="token function">tableSizeFor</span><span class="token punctuation">(</span>initialCapacity<span class="token punctuation">)</span><span class="token punctuation">;</span>
+   <span class="token punctuation">&#125;</span>
+
+   <span class="token keyword">public</span> <span class="token class-name">HashMap</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+       <span class="token keyword">this</span><span class="token punctuation">.</span>loadFactor <span class="token operator">=</span> DEFAULT_LOAD_FACTOR<span class="token punctuation">;</span> <span class="token comment">// all other fields defaulted</span>
+   <span class="token punctuation">&#125;</span></code></pre>
+
+<p>可以说在 1.8 这里，HashMap 属于<strong>懒加载</strong>的了，那么 table 数组何时加载（创建）呢？没错，就是在 put 的时候才创建的。下面我们来看看。</p>
+<h3 id="put-的变化"><a href="#put-的变化" class="headerlink" title="put 的变化"></a>put 的变化</h3><p>put 多了一层封装，需要在 <code>putVal()</code> 方法中理解</p>
+<ul>
+<li><code>final V putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict)</code></li>
+<li><code>hash</code>：Key 通过扰动函数得到最终 hash 值。</li>
+<li><code>key</code>、<code>value</code>：键 和 值。</li>
+<li><code>onlyIfAbsent</code>：如果为 true，那么不会改变已存在的值。</li>
+<li><code>evict</code>：如果为 false，说明 table 数组正在创建中。</li>
+</ul>
+<p>put 的思路还是一样的：根据 Key 计算出哈希地址，判断这个地址上有没有冲突，没有则直接插入这个 Node，有则需要解决冲突。变化大的就是代码的实现（红黑树、尾插法）。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token class-name">V</span> <span class="token function">put</span><span class="token punctuation">(</span><span class="token class-name">K</span> key<span class="token punctuation">,</span> <span class="token class-name">V</span> value<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">return</span> <span class="token function">putVal</span><span class="token punctuation">(</span><span class="token function">hash</span><span class="token punctuation">(</span>key<span class="token punctuation">)</span><span class="token punctuation">,</span> key<span class="token punctuation">,</span> value<span class="token punctuation">,</span> <span class="token boolean">false</span><span class="token punctuation">,</span> <span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">/**
+ * Implements Map.put and related methods.
+ *
+ * @param hash hash for key
+ * @param key the key
+ * @param value the value to put
+ * @param onlyIfAbsent if true, don't change existing value
+ * @param evict if false, the table is in creation mode.
+ * @return previous value, or null if none
+ */</span>
+<span class="token keyword">final</span> <span class="token class-name">V</span> <span class="token function">putVal</span><span class="token punctuation">(</span><span class="token keyword">int</span> hash<span class="token punctuation">,</span> <span class="token class-name">K</span> key<span class="token punctuation">,</span> <span class="token class-name">V</span> value<span class="token punctuation">,</span> <span class="token keyword">boolean</span> onlyIfAbsent<span class="token punctuation">,</span>
+               <span class="token keyword">boolean</span> evict<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// tab-> table 数组</span>
+    <span class="token comment">// p-> node 指针，指向哈希桶中第一个节点，可以说是链表表头节点</span>
+    <span class="token comment">// n-> 代表 table 数组的长度</span>
+    <span class="token comment">// i-> 代表 table 数组的下标</span>
+    <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span><span class="token punctuation">[</span><span class="token punctuation">]</span> tab<span class="token punctuation">;</span> <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> p<span class="token punctuation">;</span> <span class="token keyword">int</span> n<span class="token punctuation">,</span> i<span class="token punctuation">;</span>
+    <span class="token comment">// 第一次 put 就会进入这个判断，进行数组的创建</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>tab <span class="token operator">=</span> table<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token keyword">null</span> <span class="token operator">||</span> <span class="token punctuation">(</span>n <span class="token operator">=</span> tab<span class="token punctuation">.</span>length<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span>
+        n <span class="token operator">=</span> <span class="token punctuation">(</span>tab <span class="token operator">=</span> <span class="token function">resize</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>length<span class="token punctuation">;</span>
+    <span class="token comment">// 如果 put 的这个 Key，找到的位置不会冲突，那么直接创建一个 Node 节点存储这个键值对</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>p <span class="token operator">=</span> tab<span class="token punctuation">[</span>i <span class="token operator">=</span> <span class="token punctuation">(</span>n <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> hash<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span>
+        tab<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token function">newNode</span><span class="token punctuation">(</span>hash<span class="token punctuation">,</span> key<span class="token punctuation">,</span> value<span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 发生冲突进入这里</span>
+        <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> e<span class="token punctuation">;</span> <span class="token class-name">K</span> k<span class="token punctuation">;</span>
+        <span class="token comment">// 判断是否是同一个Key，是就把指针 e 指向这个节点 p，然后直接走下面的 e 是否为空的判断了</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>p<span class="token punctuation">.</span>hash <span class="token operator">==</span> hash <span class="token operator">&amp;&amp;</span>
+            <span class="token punctuation">(</span><span class="token punctuation">(</span>k <span class="token operator">=</span> p<span class="token punctuation">.</span>key<span class="token punctuation">)</span> <span class="token operator">==</span> key <span class="token operator">||</span> <span class="token punctuation">(</span>key <span class="token operator">!=</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span> key<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>k<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            e <span class="token operator">=</span> p<span class="token punctuation">;</span>
+        <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>p <span class="token keyword">instanceof</span> <span class="token class-name">TreeNode</span><span class="token punctuation">)</span>	<span class="token comment">// Key 不同，走这里，如果这个节点 p 是一个树节点</span>
+            e <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token class-name">TreeNode</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span><span class="token punctuation">)</span>p<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">putTreeVal</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">,</span> tab<span class="token punctuation">,</span> hash<span class="token punctuation">,</span> key<span class="token punctuation">,</span> value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>	<span class="token comment">// Key 不同，没有树化，需要遍历链表</span>
+            <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> binCount <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> <span class="token punctuation">;</span> <span class="token operator">++</span>binCount<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                <span class="token comment">// e 指向的 p 的下一个节点，如果为空，说明是链表尾部了</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>e <span class="token operator">=</span> p<span class="token punctuation">.</span>next<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                    p<span class="token punctuation">.</span>next <span class="token operator">=</span> <span class="token function">newNode</span><span class="token punctuation">(</span>hash<span class="token punctuation">,</span> key<span class="token punctuation">,</span> value<span class="token punctuation">,</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token keyword">if</span> <span class="token punctuation">(</span>binCount <span class="token operator">>=</span> TREEIFY_THRESHOLD <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token comment">// -1 for 1st</span>
+                        <span class="token function">treeifyBin</span><span class="token punctuation">(</span>tab<span class="token punctuation">,</span> hash<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token keyword">break</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span>
+                <span class="token comment">// 走到这里，不是链表尾部，继续判断 Key 相同与否，相同就跳出循环，走下面的判断</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>e<span class="token punctuation">.</span>hash <span class="token operator">==</span> hash <span class="token operator">&amp;&amp;</span>
+                    <span class="token punctuation">(</span><span class="token punctuation">(</span>k <span class="token operator">=</span> e<span class="token punctuation">.</span>key<span class="token punctuation">)</span> <span class="token operator">==</span> key <span class="token operator">||</span> <span class="token punctuation">(</span>key <span class="token operator">!=</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span> key<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>k<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                    <span class="token keyword">break</span><span class="token punctuation">;</span>
+                <span class="token comment">// 移动指针</span>
+                p <span class="token operator">=</span> e<span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token comment">// 这里就是，如果是同一个 Key ，就会走这里的覆盖</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>e <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> <span class="token comment">// existing mapping for key</span>
+            <span class="token class-name">V</span> oldValue <span class="token operator">=</span> e<span class="token punctuation">.</span>value<span class="token punctuation">;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>onlyIfAbsent <span class="token operator">||</span> oldValue <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span>
+                e<span class="token punctuation">.</span>value <span class="token operator">=</span> value<span class="token punctuation">;</span>
+            <span class="token function">afterNodeAccess</span><span class="token punctuation">(</span>e<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">return</span> oldValue<span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token operator">++</span>modCount<span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">++</span>size <span class="token operator">></span> threshold<span class="token punctuation">)</span>	<span class="token comment">// 判断是否需要扩容</span>
+        <span class="token function">resize</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">afterNodeInsertion</span><span class="token punctuation">(</span>evict<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<h3 id="get-的变化"><a href="#get-的变化" class="headerlink" title="get 的变化"></a>get 的变化</h3><p>get 也是，多了一层封装，思路还是一样，获取哈希地址，判断该位置上的元素是否是我们想要的。</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">public</span> <span class="token class-name">V</span> <span class="token function">get</span><span class="token punctuation">(</span><span class="token class-name">Object</span> key<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> e<span class="token punctuation">;</span>
+    <span class="token keyword">return</span> <span class="token punctuation">(</span>e <span class="token operator">=</span> <span class="token function">getNode</span><span class="token punctuation">(</span><span class="token function">hash</span><span class="token punctuation">(</span>key<span class="token punctuation">)</span><span class="token punctuation">,</span> key<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token keyword">null</span> <span class="token operator">?</span> <span class="token keyword">null</span> <span class="token operator">:</span> e<span class="token punctuation">.</span>value<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">final</span> <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> <span class="token function">getNode</span><span class="token punctuation">(</span><span class="token keyword">int</span> hash<span class="token punctuation">,</span> <span class="token class-name">Object</span> key<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span><span class="token punctuation">[</span><span class="token punctuation">]</span> tab<span class="token punctuation">;</span> <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> first<span class="token punctuation">,</span> e<span class="token punctuation">;</span> <span class="token keyword">int</span> n<span class="token punctuation">;</span> <span class="token class-name">K</span> k<span class="token punctuation">;</span>
+    <span class="token comment">// 判断当前哈希表是否存在、是否有元素、得到的哈希地址上是否有元素（算法的健壮性）</span>
+    <span class="token comment">// 判断为 false 的话，自然说明没有任何元素，还 get 个 p？</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>tab <span class="token operator">=</span> table<span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">(</span>n <span class="token operator">=</span> tab<span class="token punctuation">.</span>length<span class="token punctuation">)</span> <span class="token operator">></span> <span class="token number">0</span> <span class="token operator">&amp;&amp;</span>
+        <span class="token punctuation">(</span>first <span class="token operator">=</span> tab<span class="token punctuation">[</span><span class="token punctuation">(</span>n <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">&amp;</span> hash<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 哈希桶第一个元素是我们想要的？是就直接返回了</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>first<span class="token punctuation">.</span>hash <span class="token operator">==</span> hash <span class="token operator">&amp;&amp;</span> <span class="token comment">// always check first node</span>
+            <span class="token punctuation">(</span><span class="token punctuation">(</span>k <span class="token operator">=</span> first<span class="token punctuation">.</span>key<span class="token punctuation">)</span> <span class="token operator">==</span> key <span class="token operator">||</span> <span class="token punctuation">(</span>key <span class="token operator">!=</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span> key<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>k<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token keyword">return</span> first<span class="token punctuation">;</span>
+        <span class="token comment">// 不是，那么看哈希桶上的链表/红黑树</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>e <span class="token operator">=</span> first<span class="token punctuation">.</span>next<span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span>first <span class="token keyword">instanceof</span> <span class="token class-name">TreeNode</span><span class="token punctuation">)</span>
+                <span class="token keyword">return</span> <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token class-name">TreeNode</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span><span class="token punctuation">)</span>first<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">getTreeNode</span><span class="token punctuation">(</span>hash<span class="token punctuation">,</span> key<span class="token punctuation">)</span><span class="token punctuation">;</span>
+            <span class="token keyword">do</span> <span class="token punctuation">&#123;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>e<span class="token punctuation">.</span>hash <span class="token operator">==</span> hash <span class="token operator">&amp;&amp;</span>
+                    <span class="token punctuation">(</span><span class="token punctuation">(</span>k <span class="token operator">=</span> e<span class="token punctuation">.</span>key<span class="token punctuation">)</span> <span class="token operator">==</span> key <span class="token operator">||</span> <span class="token punctuation">(</span>key <span class="token operator">!=</span> <span class="token keyword">null</span> <span class="token operator">&amp;&amp;</span> key<span class="token punctuation">.</span><span class="token function">equals</span><span class="token punctuation">(</span>k<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+                    <span class="token keyword">return</span> e<span class="token punctuation">;</span>
+            <span class="token punctuation">&#125;</span> <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>e <span class="token operator">=</span> e<span class="token punctuation">.</span>next<span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">return</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+
+
+<h3 id="扩容机制"><a href="#扩容机制" class="headerlink" title="扩容机制"></a>扩容机制</h3><p>1.8 的扩容机制，变化就大了！在 1.7 的时候，主要是通过 <code>resize()</code> 和 <code>transfer()</code> 相互配合完成扩容及元素转移的，在 1.8 的时候，直接把 <code>transfer()</code> 也搞到 <code>resize()</code> 中了，而且 transfer 的 rehash 的算法很美妙。不过扩容时机还是一样，超过阈值就会扩容。</p>
+<p>我们看看源码是这样的：</p>
+<pre class="language-java" data-language="java"><code class="language-java"><span class="token keyword">final</span> <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span><span class="token punctuation">[</span><span class="token punctuation">]</span> <span class="token function">resize</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span><span class="token punctuation">[</span><span class="token punctuation">]</span> oldTab <span class="token operator">=</span> table<span class="token punctuation">;</span>	<span class="token comment">// 一开始 table 还没创建，所以第一次这里的 oldTab 为空</span>
+    <span class="token keyword">int</span> oldCap <span class="token operator">=</span> <span class="token punctuation">(</span>oldTab <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token operator">?</span> <span class="token number">0</span> <span class="token operator">:</span> oldTab<span class="token punctuation">.</span>length<span class="token punctuation">;</span>
+    <span class="token keyword">int</span> oldThr <span class="token operator">=</span> threshold<span class="token punctuation">;</span>
+    <span class="token keyword">int</span> newCap<span class="token punctuation">,</span> newThr <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>oldCap <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">if</span> <span class="token punctuation">(</span>oldCap <span class="token operator">>=</span> MAXIMUM_CAPACITY<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            threshold <span class="token operator">=</span> <span class="token class-name">Integer</span><span class="token punctuation">.</span>MAX_VALUE<span class="token punctuation">;</span>
+            <span class="token keyword">return</span> oldTab<span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>newCap <span class="token operator">=</span> oldCap <span class="token operator">&lt;&lt;</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> MAXIMUM_CAPACITY <span class="token operator">&amp;&amp;</span>
+                 oldCap <span class="token operator">>=</span> DEFAULT_INITIAL_CAPACITY<span class="token punctuation">)</span>
+            newThr <span class="token operator">=</span> oldThr <span class="token operator">&lt;&lt;</span> <span class="token number">1</span><span class="token punctuation">;</span> <span class="token comment">// double threshold 阈值更新为原来的两倍</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>oldThr <span class="token operator">></span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token comment">// initial capacity was placed in threshold</span>
+        newCap <span class="token operator">=</span> oldThr<span class="token punctuation">;</span>
+    <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>               <span class="token comment">// zero initial threshold signifies using defaults</span>
+        <span class="token comment">// 默认初始化</span>
+        newCap <span class="token operator">=</span> DEFAULT_INITIAL_CAPACITY<span class="token punctuation">;</span>
+        newThr <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">)</span><span class="token punctuation">(</span>DEFAULT_LOAD_FACTOR <span class="token operator">*</span> DEFAULT_INITIAL_CAPACITY<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>newThr <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">float</span> ft <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token keyword">float</span><span class="token punctuation">)</span>newCap <span class="token operator">*</span> loadFactor<span class="token punctuation">;</span>
+        newThr <span class="token operator">=</span> <span class="token punctuation">(</span>newCap <span class="token operator">&lt;</span> MAXIMUM_CAPACITY <span class="token operator">&amp;&amp;</span> ft <span class="token operator">&lt;</span> <span class="token punctuation">(</span><span class="token keyword">float</span><span class="token punctuation">)</span>MAXIMUM_CAPACITY <span class="token operator">?</span>
+                  <span class="token punctuation">(</span><span class="token keyword">int</span><span class="token punctuation">)</span>ft <span class="token operator">:</span> <span class="token class-name">Integer</span><span class="token punctuation">.</span>MAX_VALUE<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    threshold <span class="token operator">=</span> newThr<span class="token punctuation">;</span>
+    <span class="token annotation punctuation">@SuppressWarnings</span><span class="token punctuation">(</span><span class="token punctuation">&#123;</span><span class="token string">"rawtypes"</span><span class="token punctuation">,</span><span class="token string">"unchecked"</span><span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+    <span class="token comment">// 扩容，创建新的 Node 数组（当然，第一次创建数组也是在这里创建）</span>
+    <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span><span class="token punctuation">[</span><span class="token punctuation">]</span> newTab <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token keyword">new</span> <span class="token class-name">Node</span><span class="token punctuation">[</span>newCap<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    table <span class="token operator">=</span> newTab<span class="token punctuation">;</span>
+    <span class="token comment">// 原数组不为空</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>oldTab <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+        <span class="token comment">// 遍历原数组</span>
+        <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">int</span> j <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> j <span class="token operator">&lt;</span> oldCap<span class="token punctuation">;</span> <span class="token operator">++</span>j<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> e<span class="token punctuation">;</span>	<span class="token comment">// 可以看成一个指针</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>e <span class="token operator">=</span> oldTab<span class="token punctuation">[</span>j<span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>	<span class="token comment">// 判断第j个哈希桶是否为空</span>
+                oldTab<span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+                <span class="token keyword">if</span> <span class="token punctuation">(</span>e<span class="token punctuation">.</span>next <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span>		<span class="token comment">// 如果这个哈希桶没有下一个节点，说明没有链表</span>
+                    newTab<span class="token punctuation">[</span>e<span class="token punctuation">.</span>hash <span class="token operator">&amp;</span> <span class="token punctuation">(</span>newCap <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">]</span> <span class="token operator">=</span> e<span class="token punctuation">;</span>
+                <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>e <span class="token keyword">instanceof</span> <span class="token class-name">TreeNode</span><span class="token punctuation">)</span>	<span class="token comment">// 如果这个节点是树节点</span>
+                    <span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token class-name">TreeNode</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span><span class="token punctuation">)</span>e<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">split</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">,</span> newTab<span class="token punctuation">,</span> j<span class="token punctuation">,</span> oldCap<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token keyword">else</span> <span class="token punctuation">&#123;</span> <span class="token comment">// preserve order</span>
+                    <span class="token comment">// 不是树节点并且有下一个节点，说明有链表</span>
+                    <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> loHead <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">,</span> loTail <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+                    <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> hiHead <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">,</span> hiTail <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+                    <span class="token class-name">Node</span><span class="token generics"><span class="token punctuation">&lt;</span><span class="token class-name">K</span><span class="token punctuation">,</span><span class="token class-name">V</span><span class="token punctuation">></span></span> next<span class="token punctuation">;</span>
+                    <span class="token comment">// 尾插法转移链表数据，直到链表没有元素为止</span>
+                    <span class="token keyword">do</span> <span class="token punctuation">&#123;</span>
+                        next <span class="token operator">=</span> e<span class="token punctuation">.</span>next<span class="token punctuation">;</span>
+                        <span class="token comment">// 如果这个与操作结果为0，那么放入新数组的位置和原数组的位置是一样的</span>
+                        <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>e<span class="token punctuation">.</span>hash <span class="token operator">&amp;</span> oldCap<span class="token punctuation">)</span> <span class="token operator">==</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                            <span class="token keyword">if</span> <span class="token punctuation">(</span>loTail <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span>	<span class="token comment">// 直接放入</span>
+                                loHead <span class="token operator">=</span> e<span class="token punctuation">;</span>
+                            <span class="token keyword">else</span>				<span class="token comment">// 尾插法</span>
+                                loTail<span class="token punctuation">.</span>next <span class="token operator">=</span> e<span class="token punctuation">;</span>
+                            loTail <span class="token operator">=</span> e<span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span>
+                        <span class="token comment">// 与操作结果不为0，需要重新计算存放的位置</span>
+                        <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+                            <span class="token keyword">if</span> <span class="token punctuation">(</span>hiTail <span class="token operator">==</span> <span class="token keyword">null</span><span class="token punctuation">)</span>	<span class="token comment">// 直接放入</span>
+                                hiHead <span class="token operator">=</span> e<span class="token punctuation">;</span>
+                            <span class="token keyword">else</span>				<span class="token comment">// 尾插法</span>
+                                hiTail<span class="token punctuation">.</span>next <span class="token operator">=</span> e<span class="token punctuation">;</span>
+                            hiTail <span class="token operator">=</span> e<span class="token punctuation">;</span>
+                        <span class="token punctuation">&#125;</span>
+                    <span class="token punctuation">&#125;</span> <span class="token keyword">while</span> <span class="token punctuation">(</span><span class="token punctuation">(</span>e <span class="token operator">=</span> next<span class="token punctuation">)</span> <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token keyword">if</span> <span class="token punctuation">(</span>loTail <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+                        loTail<span class="token punctuation">.</span>next <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+                        newTab<span class="token punctuation">[</span>j<span class="token punctuation">]</span> <span class="token operator">=</span> loHead<span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span>
+                    <span class="token keyword">if</span> <span class="token punctuation">(</span>hiTail <span class="token operator">!=</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> 
+                        <span class="token comment">// 新位置：所在的原数组位置下标加上原数组容量（长度）</span>
+                        hiTail<span class="token punctuation">.</span>next <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+                        newTab<span class="token punctuation">[</span>j <span class="token operator">+</span> oldCap<span class="token punctuation">]</span> <span class="token operator">=</span> hiHead<span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span>
+                <span class="token punctuation">&#125;</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span>
+    <span class="token punctuation">&#125;</span>
+    <span class="token comment">// 第一次不会走上面的 if，直接返回新创建默认容量和阈值的数组</span>
+    <span class="token keyword">return</span> newTab<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+
+<p>这里面<strong>最难理解</strong>的就是 <code>(e.hash &amp; oldCap) == 0</code> </p>
+<ul>
+<li>运算结果为 0 的话，那么放入新数组的位置和原数组的位置是一样的</li>
+<li>运算结果不为 0 的话，那么就需要重新计算位置（新位置：所在的原数组位置下标加上原数组容量（长度））</li>
+</ul>
+<h3 id="理解-e-hash-amp-oldCap-x3D-x3D-0"><a href="#理解-e-hash-amp-oldCap-x3D-x3D-0" class="headerlink" title="理解 (e.hash &amp; oldCap) &#x3D;&#x3D; 0"></a>理解 (e.hash &amp; oldCap) &#x3D;&#x3D; 0</h3><p><strong>需要知道的是：</strong></p>
+<ul>
+<li>e.hash： e 可以看成一个指针，是一个指向当前遍历到的 Node 节点的指针，hash 指的是该 Node 节点存储的 Key 的 hash 值，即 hash 值是通过 <code>hash(key.hashCode())</code> 得到的最终存储的 hash 值。</li>
+<li>oldCap：表示原数组的容量，即原数组长度，同时这个长度是 2 次方幂，比如 $2^4 &#x3D; 16$</li>
+</ul>
+<p><strong>何时这个操作等于 0 ？</strong></p>
+<p>我们可以从 oldCap 入手，假设 oldCap 是 16，那么其二进制为 <code>10000</code></p>
+<p>如果我们想 <code>e.hash &amp; oldCap</code> 等于 0，那么<strong>该 Key 的 hash 值的二进制最高位必须为 0</strong>，剩下的二进制位可以不管，这样进行与运算后的结果肯定是<strong>等于</strong> 0 的。</p>
+<p>举个例子，假设此时 hash 值对应的二进制为 <code>01111</code>，那么和 oldCap 进行与运算：</p>
+<p>&#96;&#96;e.hash &amp; oldCap<code>=</code>10000 &amp; 01111&#96; &#x3D; 00000 &#x3D; 0</p>
+<p>显而易见，当 hash 值二进制的最高位为 0 的时候，和 oldCap 进行与运算后，结果必定为0</p>
+<p><strong>但是这个和扩容后位置有什么关系呢？</strong>我们知道，扩容是扩为原来的两倍的，所以我们可以看下，计算扩容后该Node 节点应该在哪个新位置。</p>
+<p>计算扩容后的位置，我们知道是这样的，「hash 值 &amp; 数组长度减一」的运算结果，就是我们需要的数组下标。</p>
+<p>扩容后的应该在的位置（oldCap 是 16，2 倍就是32，32 对应二进制 100000，减一操作后为 011111）：</p>
+<p><code>hash &amp; 2 × oldCap - 1</code> &#x3D; <code>01111 &amp; 011111</code> &#x3D; <code>01111</code></p>
+<p>那没扩容之前的位置在那里？我们计算下：</p>
+<p><code>hash &amp; oldCap - 1</code> &#x3D; <code>01111 &amp; 01111</code> &#x3D; <code>01111</code></p>
+<p>所以，我们可以发现，此时扩容后和扩容前，该元素的位置没有发生变化。 因此，才有这个结论：<strong>运算结果为 0 的话，那么放入新数组的位置和原数组的位置是一样的</strong>。</p>
+<p><strong>何时这个操作不等于 0 ？</strong></p>
+<p>同样，从 oldCap 入手，假设此时 oldCap 是16，对应二进制为 <code>10000</code></p>
+<p>如果我们想 <code>e.hash &amp; oldCap</code> 不等于 0，那么<strong>该 Key 的 hash 值的二进制最高位必须为 1</strong>，剩下的二进制位可以不管，这样进行与运算后的结果肯定是<strong>不等于</strong> 0 的。</p>
+<p>还是一样，举例子，假设 hash 值对应的二进制为 <code>10001</code>，那么和 oldCap 进行与运算：</p>
+<p><code>e.hash &amp; oldCap</code> &#x3D; <code>10001 &amp; 10000</code> &#x3D; 10000 &#x3D; 16 ≠ 0</p>
+<p>显而易见，hash 值二进制的最高位为 1，那么该结果必定不为 0</p>
+<p><strong>同理，来看下扩容前后的位置关系。</strong></p>
+<p>扩容前的位置：</p>
+<p><code>hash &amp; oldCap - 1</code> &#x3D; <code>10001 &amp; 01111</code> &#x3D; <code>00001</code> &#x3D; 1 </p>
+<p>扩容后的位置：</p>
+<p><code>hash &amp; 2 × oldCap - 1</code> &#x3D; <code>10001 &amp; 011111</code> &#x3D; <code>10001</code> &#x3D; 17</p>
+<p>它们之间有一种巧妙的关系，就是：「扩容后的位置」会等于「扩容前的位置」加上「扩容前的数组容量」，也就是说 <code>10001(扩容后的位置) = 1(扩容前的位置) + 10000(扩容前的数组容量，16)</code></p>
+<p>所以，才有这个结论：<strong>运算结果不为 0 的话，那么就需要重新计算位置（新位置：所在的原数组位置下标加上原数组容量（长度））</strong>。</p>
+<h3 id="关于红黑树"><a href="#关于红黑树" class="headerlink" title="关于红黑树"></a>关于红黑树</h3><p>待完善，等着填坑。</p>
+<h3 id="1-8-总结"><a href="#1-8-总结" class="headerlink" title="1.8 总结"></a>1.8 总结</h3><p>在 1.8 的 HashMap中，底层是 Node 类型的数组 + Node 类型的链表 或者 + Node 类型的红黑树。</p>
+<p>比起 1.7 来说，变化还是挺多的，源码的写法也变得更加高级，当然效率也变得更高了，引入了红黑树提高查找效率。因为引入了红黑树，所以解决冲突的时候，就有些区别了。</p>
+<p>如果当要存储的 Key-Value 的 Key 与当前位置上的 Key 发生冲突，那么就需要进行尾插法（1.7 就是头插法），将该 Key 插入当前哈希桶对应的链表，当这个链表的长度大于 8 且数组长度大于等于 64 时，当前链表就会树化，转成红黑树，当红黑树中的元素小于 6 时，那么就会退化回来成为链表。如果仅仅链表长度大于 8，但是数组长度小于 64，那么就只会进行扩容，不会把链表树化（这部分的源码在 <code>treeifyBin()</code> 方法中）。</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>以上，就是浅入浅出 1.7 和 1.8 的 HashMap！</p>
+</div></section><div id="reward-container"><span class="hty-icon-button button-glow" id="reward-button" title="Donate" onclick="var qr = document.getElementById(&quot;qr&quot;); qr.style.display = (qr.style.display === &quot;none&quot;) ? &quot;block&quot; : &quot;none&quot;;"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-hand-coin-line"></use></svg></span><div id="reward-comment">靓仔or靓女，可以请我喝杯咖啡吗？.</div><div id="qr" style="display:none;"><div style="display:inline-block"><a target="_blank" rel="noopener" href="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20220523221203.png"><img loading="lazy" src="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20220523221203.png" alt="支付宝" title="支付宝"></a><div><span style="color:#00A3EE"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-alipay-line"></use></svg></span></div></div><div style="display:inline-block"><a target="_blank" rel="noopener" href="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20220523221130.png"><img loading="lazy" src="https://pic-bed-of-god23bin.oss-cn-shenzhen.aliyuncs.com/img/20220523221130.png" alt="微信支付" title="微信支付"></a><div><span style="color:#2DC100"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-wechat-pay-line"></use></svg></span></div></div></div></div><ul class="post-copyright"><li class="post-copyright-author"><strong>Post author: </strong>god23bin</li><li class="post-copyright-link"><strong>Post link: </strong><a href="https://god23bin.github.io/posts/shallow-in-java-with-hashmap/" title="深入浅出1.7和1.8的HashMap">https://god23bin.github.io/posts/shallow-in-java-with-hashmap/</a></li><li class="post-copyright-license"><strong>Copyright Notice: </strong>All articles in this blog are licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" target="_blank" rel="noopener" title="CC BY-NC-SA 4.0 "><svg class="icon"><use xlink:href="#icon-creative-commons-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-by-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-nc-line"></use></svg><svg class="icon"><use xlink:href="#icon-creative-commons-sa-line"></use></svg></a> unless otherwise stated.</li></ul><script>document.addEventListener('copy', function (event) {
+  const clipboardData = event.clipboardData || window.clipboardData;
+  if (!clipboardData) { return; }
+  const text = window.getSelection().toString();
+  if (text) {
+    event.preventDefault();
+    clipboardData.setData('text/plain', text + '\n\nPost author: god23bin\nPost link: https://god23bin.github.io/posts/shallow-in-java-with-hashmap/\nCopyright Notice: All articles in this blog are licensed under CC BY-NC-SA 4.0 unless otherwise stated.');
+  }
+});</script></article><div class="post-nav"><div class="post-nav-item"></div><div class="post-nav-item"><a class="post-nav-next" href="/posts/I-can-finally-write-scheduled-tasks-in-Java/" rel="next" title="我终于会写 Java 的定时任务了！"><span class="post-nav-text">我终于会写 Java 的定时任务了！</span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-right-s-line"></use></svg></a></div></div></div><div class="hty-card" id="comment"></div></main><footer class="sidebar-translate" id="footer"><div class="copyright"><span>&copy; 2021 – 2022 </span><span class="with-love" id="animate"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-cloud-line"></use></svg></span><span class="author"> god23bin</span></div><div class="powered"><span>Powered by <a href="https://hexo.io" target="_blank" rel="noopener">Hexo</a> v6.1.0</span><span class="footer-separator">|</span><span>Theme - <a rel="noopener" href="https://github.com/YunYouJun/hexo-theme-yun" target="_blank"><span>Yun</span></a> v1.8.11</span></div><div class="live-time"><span>本博客已萌萌哒地运行</span><span id="display_live_time"></span><span class="moe-text">(●'◡'●)</span><script>function blog_live_time() {
+  setTimeout(blog_live_time, 1000);
+  const start = new Date('2021-04-01T00:00:00');
+  const now = new Date();
+  const timeDiff = (now.getTime() - start.getTime());
+  const msPerMinute = 60 * 1000;
+  const msPerHour = 60 * msPerMinute;
+  const msPerDay = 24 * msPerHour;
+  const passDay = Math.floor(timeDiff / msPerDay);
+  const passHour = Math.floor((timeDiff % msPerDay) / 60 / 60 / 1000);
+  const passMinute = Math.floor((timeDiff % msPerHour) / 60 / 1000);
+  const passSecond = Math.floor((timeDiff % msPerMinute) / 1000);
+  display_live_time.innerHTML = ` ${passDay} Days ${passHour} Hours ${passMinute} Minutes ${passSecond} Seconds`;
+}
+blog_live_time();
+</script></div><div id="busuanzi"><span id="busuanzi_container_site_uv" title="Total Visitors"><span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-user-line"></use></svg></span><span id="busuanzi_value_site_uv"></span></span><span class="footer-separator">|</span><span id="busuanzi_container_site_pv" title="Total Views"><span><svg class="icon" aria-hidden="true"><use xlink:href="#icon-eye-line"></use></svg></span><span id="busuanzi_value_site_pv"></span></span><script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></footer><a class="hty-icon-button" id="back-to-top" aria-label="back-to-top" href="#"><svg class="icon" aria-hidden="true"><use xlink:href="#icon-arrow-up-s-line"></use></svg><svg class="progress-circle-container" viewBox="0 0 100 100"><circle class="progress-circle" id="progressCircle" cx="50" cy="50" r="48" fill="none" stroke="#6200ee" stroke-width="2" stroke-linecap="round"></circle></svg></a><script>function initMourn() {
+  const date = new Date();
+  const today = (date.getMonth() + 1) + "-" + date.getDate()
+  const mourn_days = ["4-4","9-18"]
+  if (mourn_days.includes(today)) {
+    document.documentElement.style.filter = "grayscale(1)";
+  }
+}
+initMourn();</script><div class="aplayer no-destroy" id="aplayer" data-id="140834718" data-server="netease" data-type="playlist" data-fixed="true" data-autoplay data-theme="#6200ee" data-loop="all" data-order="list" data-preload="auto" data-volume="0.7" data-mutex data-lrctype="0" data-listmaxheight="340px" data-storagename="metingjs"></div></div></body></html>
